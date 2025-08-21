@@ -1,0 +1,13 @@
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Local data
+# Ignore the conversation log file
+/time.json 

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LLM Time Analysis (Client-side)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>LLM Time Analysis</h1>
+    <p>Compute LLM-only runtimes from a time.json file entirely in the browser.</p>
+  </header>
+
+  <section class="controls">
+    <div class="control-row">
+      <label for="tz-select">Display timezone:</label>
+      <select id="tz-select">
+        <option value="UTC">UTC</option>
+        <option value="Asia/Shanghai" selected>UTC+8 (Asia/Shanghai)</option>
+        <option value="America/Los_Angeles">America/Los_Angeles</option>
+        <option value="America/New_York">America/New_York</option>
+        <option value="Europe/London">Europe/London</option>
+      </select>
+      <button id="btn-clear">Clear Results</button>
+    </div>
+
+    <div class="control-row">
+      <label for="file-input" class="btn">Choose time.json</label>
+      <input id="file-input" type="file" accept="application/json,.json" />
+      <span class="hint">or drag & drop the file anywhere on this page</span>
+    </div>
+
+    <details>
+      <summary>Paste JSON</summary>
+      <textarea id="json-text" placeholder="Paste raw JSON content here..."></textarea>
+      <div class="control-row">
+        <button id="btn-parse-text">Parse Pasted JSON</button>
+      </div>
+    </details>
+  </section>
+
+  <section id="summary" class="card hidden">
+    <h2>Summary</h2>
+    <div class="summary-grid">
+      <div>
+        <div class="label">First message</div>
+        <div id="first-msg" class="value">-</div>
+      </div>
+      <div>
+        <div class="label">Last message</div>
+        <div id="last-msg" class="value">-</div>
+      </div>
+      <div>
+        <div class="label">Run-sum LLM runtime</div>
+        <div id="run-total" class="value">-</div>
+      </div>
+      <div>
+        <div class="label">Cycle-sum LLM runtime</div>
+        <div id="cycle-total" class="value">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="runs" class="card hidden">
+    <div class="card-head">
+      <h2>LLM Run Windows (assistant → own tools)</h2>
+      <button id="export-runs">Export CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Run ID</th>
+            <th>Assistant Message ID</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Duration (s)</th>
+          </tr>
+        </thead>
+        <tbody id="runs-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="cycles" class="card hidden">
+    <div class="card-head">
+      <h2>LLM Active Cycles (user-triggered → last non-user before next user)</h2>
+      <button id="export-cycles">Export CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Trigger User Message ID</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Duration (s)</th>
+          </tr>
+        </thead>
+        <tbody id="cycles-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <p>All parsing is done locally in your browser. No data leaves your device.</p>
+    <p>
+      <a href="https://pages.github.com/" target="_blank" rel="noopener">Deploy to GitHub Pages</a>
+    </p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html> 
