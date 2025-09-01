@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Conversation Visualizer</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; 
+      background: #f5f7fa; 
+      color: #2c3e50;
+    }
+
+    .header {
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+    }
+
+    .header p {
+      margin: 0;
+      opacity: 0.9;
+    }
+
+    .controls {
+      background: white;
+      padding: 20px;
+      margin: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .control-row {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .control-row:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      font-weight: 600;
+      color: #2c3e50;
+      min-width: 100px;
+    }
+
+    input[type="url"], select, textarea {
+      flex: 1;
+      min-width: 300px;
+      padding: 10px 15px;
+      border: 2px solid #e1e8ed;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="url"]:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+      font-family: Monaco, 'Courier New', monospace;
+    }
+
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+
+    button:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 15px;
+      padding: 12px 15px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+
+    .status.loading {
+      background: #e3f2fd;
+      color: #1976d2;
+      border: 1px solid #bbdefb;
+    }
+
+    .status.success {
+      background: #e8f5e8;
+      color: #2e7d32;
+      border: 1px solid #c8e6c9;
+    }
+
+    .status.error {
+      background: #ffebee;
+      color: #c62828;
+      border: 1px solid #ffcdd2;
+    }
+
+    .conversation-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .conversation-header {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .conversation-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .stat-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #3498db;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #7f8c8d;
+      margin-top: 5px;
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 40px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 20px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, #3498db, #e74c3c);
+    }
+
+    .message {
+      position: relative;
+      background: white;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: transform 0.2s ease;
+    }
+
+    .message:hover {
+      transform: translateX(5px);
+    }
+
+    .message::before {
+      content: '';
+      position: absolute;
+      left: -28px;
+      top: 20px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 0 0 2px #3498db;
+    }
+
+    .message.user::before {
+      background: #2ecc71;
+      box-shadow: 0 0 0 2px #2ecc71;
+    }
+
+    .message.assistant::before {
+      background: #3498db;
+      box-shadow: 0 0 0 2px #3498db;
+    }
+
+    .message.tool::before {
+      background: #f39c12;
+      box-shadow: 0 0 0 2px #f39c12;
+    }
+
+    .message-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid #ecf0f1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .message-type {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .message-type.user {
+      background: #d5f4e6;
+      color: #27ae60;
+    }
+
+    .message-type.assistant {
+      background: #dae8fc;
+      color: #2980b9;
+    }
+
+    .message-type.tool {
+      background: #fdeaa7;
+      color: #d68910;
+    }
+
+    .message-time {
+      font-size: 12px;
+      color: #7f8c8d;
+      font-family: Monaco, 'Courier New', monospace;
+    }
+
+    .message-content {
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .message-content pre {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 13px;
+      margin: 10px 0;
+    }
+
+    .message-content code {
+      background: #f8f9fa;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .message-metadata {
+      background: #f8f9fa;
+      padding: 10px 20px;
+      font-size: 12px;
+      color: #7f8c8d;
+      border-top: 1px solid #ecf0f1;
+    }
+
+    .metadata-item {
+      margin: 5px 0;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .filters {
+      background: white;
+      padding: 15px 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-checkbox input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+
+    /* Enhanced content rendering styles */
+    .message-role {
+      background: #f8f9fa;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    .role-label {
+      font-weight: 600;
+      color: #495057;
+    }
+
+    .role-value {
+      background: #e9ecef;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: Monaco, 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .message-main-content {
+      margin-bottom: 15px;
+    }
+
+    .section-title {
+      margin: 20px 0 12px 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: #495057;
+      border-bottom: 2px solid #e9ecef;
+      padding-bottom: 6px;
+    }
+
+    .section-subtitle {
+      font-weight: 600;
+      font-size: 12px;
+      color: #6c757d;
+      margin-bottom: 8px;
+    }
+
+    /* Content item styles */
+    .content-item {
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 8px;
+      border-left: 4px solid #dee2e6;
+    }
+
+    .text-content {
+      background: transparent;
+      border: none;
+      padding: 0;
+    }
+
+    .image-content {
+      background: #f8f9fa;
+      border-left-color: #28a745;
+    }
+
+    .audio-content {
+      background: #f8f9fa;
+      border-left-color: #17a2b8;
+    }
+
+    .unknown-content {
+      background: #fff3cd;
+      border-left-color: #ffc107;
+    }
+
+    .content-type-label {
+      font-weight: 600;
+      font-size: 12px;
+      color: #495057;
+      margin-bottom: 8px;
+    }
+
+    .content-image {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .image-detail {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 8px;
+    }
+
+    /* Tool calls styles */
+    .tool-calls-section, .function-call-section {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    }
+
+    .tool-call-item, .function-call-item {
+      background: white;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      border: 1px solid #e9ecef;
+    }
+
+    .tool-call-item:last-child, .function-call-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .tool-call-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .tool-call-name, .function-name {
+      font-weight: 600;
+      color: #495057;
+      background: #e3f2fd;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .tool-call-id {
+      font-family: Monaco, 'Courier New', monospace;
+      font-size: 11px;
+      color: #6c757d;
+      background: #f8f9fa;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .tool-arguments, .function-arguments {
+      margin-top: 10px;
+    }
+
+    .tool-args-text {
+      background: #f8f9fa;
+      padding: 8px;
+      border-radius: 4px;
+      font-family: Monaco, 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .tool-type {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 8px;
+    }
+
+    /* Collapsible JSON styles */
+    .collapsible-json {
+      margin: 10px 0;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .json-header {
+      background: #f8f9fa;
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      border-bottom: 1px solid #e9ecef;
+      transition: background-color 0.2s ease;
+    }
+
+    .json-header:hover {
+      background: #e9ecef;
+    }
+
+    .json-toggle {
+      font-size: 12px;
+      color: #6c757d;
+      transition: transform 0.2s ease;
+      width: 12px;
+      text-align: center;
+    }
+
+    .json-toggle.open {
+      transform: rotate(90deg);
+    }
+
+    .json-title {
+      font-weight: 600;
+      color: #495057;
+    }
+
+    .json-size {
+      color: #6c757d;
+      font-size: 11px;
+      margin-left: auto;
+    }
+
+    .json-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      background: #f8f9fa;
+    }
+
+    .json-content.open {
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .json-data {
+      margin: 0;
+      padding: 12px;
+      background: transparent;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #495057;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* Syntax highlighting for JSON */
+    .json-data {
+      color: #212529;
+    }
+
+    /* Better code formatting */
+    .message-content code {
+      background: #f1f3f4;
+      color: #d63384;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    .message-content pre {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.4;
+      margin: 10px 0;
+    }
+
+    /* Enhanced content structure styles */
+    .main-content {
+      margin-bottom: 15px;
+    }
+
+    .main-content:empty {
+      display: none;
+    }
+
+    /* Improved collapsible sections */
+    .collapsible-json + .collapsible-json {
+      margin-top: 8px;
+    }
+
+    /* Special styling for search terms */
+    .json-title:contains("Search Terms") {
+      color: #17a2b8;
+    }
+
+    /* Better spacing for structured content */
+    .message-content .collapsible-json:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Highlight main content when there's structured data */
+    .main-content + .collapsible-json {
+      border-top: 2px solid #e9ecef;
+      margin-top: 15px;
+    }
+
+    /* Metadata section improvements */
+    .message-metadata {
+      margin-top: 15px;
+      border-top: 1px solid #e9ecef;
+    }
+
+    .message-metadata .json-header {
+      background: #f1f3f4;
+      font-size: 12px;
+    }
+
+    .message-metadata .json-title {
+      color: #6c757d;
+      font-weight: 500;
+    }
+
+    /* Initial Prompt Section Styles */
+    .prompt-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      margin: 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .prompt-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .prompt-header {
+      padding: 20px 25px 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .prompt-header h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .prompt-meta {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .prompt-time {
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-family: Monaco, 'Courier New', monospace;
+    }
+
+    .prompt-content {
+      padding: 25px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .prompt-text {
+      font-size: 18px;
+      line-height: 1.7;
+      background: rgba(255,255,255,0.15);
+      padding: 25px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.25);
+      backdrop-filter: blur(10px);
+      font-weight: 400;
+      letter-spacing: 0.2px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      quotes: '"' '"' "'" "'";
+    }
+
+    .prompt-text::before {
+      content: open-quote;
+      font-size: 24px;
+      color: rgba(255,255,255,0.7);
+      margin-right: 8px;
+      vertical-align: top;
+      line-height: 1;
+    }
+
+    .prompt-text::after {
+      content: close-quote;
+      font-size: 24px;
+      color: rgba(255,255,255,0.7);
+      margin-left: 8px;
+      vertical-align: top;
+      line-height: 1;
+    }
+
+    /* Enhanced User Message Styles */
+    .message.user {
+      border-left: 4px solid #2ecc71;
+      background: linear-gradient(135deg, #f8fff9 0%, #e8f8f5 100%);
+      box-shadow: 0 4px 15px rgba(46, 204, 113, 0.1);
+    }
+
+    .message.user::before {
+      background: #2ecc71;
+      box-shadow: 0 0 0 3px white, 0 0 0 6px #2ecc71;
+      width: 16px;
+      height: 16px;
+      left: -30px;
+    }
+
+    .message.user .message-header {
+      background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+      color: white;
+      margin: -20px -20px 15px -20px;
+      padding: 15px 20px;
+      border-radius: 12px 12px 0 0;
+    }
+
+    .message.user .message-type.user {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      font-weight: 600;
+    }
+
+    .message.user .message-time {
+      color: rgba(255,255,255,0.9);
+    }
+
+    /* Initial Prompt Message Special Styling */
+    .message.user.initial-prompt {
+      border-left: 4px solid #8e44ad;
+      background: linear-gradient(135deg, #faf7ff 0%, #f0e8ff 100%);
+      box-shadow: 0 6px 20px rgba(142, 68, 173, 0.15);
+      position: relative;
+      overflow: visible;
+    }
+
+    .message.user.initial-prompt::before {
+      background: #8e44ad;
+      box-shadow: 0 0 0 3px white, 0 0 0 6px #8e44ad;
+      width: 20px;
+      height: 20px;
+      left: -32px;
+    }
+
+    .message.user.initial-prompt::after {
+      content: '💬 INITIAL PROMPT';
+      position: absolute;
+      top: -10px;
+      right: 15px;
+      background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(142, 68, 173, 0.3);
+    }
+
+    .message.user.initial-prompt .message-header {
+      background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🗣️ Conversation Visualizer</h1>
+    <p>可视化展示对话数据，每条消息都显示内容和时间戳</p>
+  </div>
+
+  <div class="controls">
+    <div class="control-row">
+      <label for="url-input">Societas URL:</label>
+      <input id="url-input" type="url" placeholder="粘贴 https://staging.societas.ms/share/... URL" />
+      <button id="fetch-btn">获取对话数据</button>
+    </div>
+    
+    <div class="control-row">
+      <label for="json-input">或粘贴JSON:</label>
+      <textarea id="json-input" placeholder="粘贴对话JSON数据..."></textarea>
+      <button id="parse-btn">解析JSON数据</button>
+    </div>
+
+    <div class="control-row">
+      <label for="timezone-select">时区:</label>
+      <select id="timezone-select">
+        <option value="UTC">UTC</option>
+        <option value="Asia/Shanghai" selected>UTC+8 (Asia/Shanghai)</option>
+        <option value="America/Los_Angeles">America/Los_Angeles</option>
+        <option value="America/New_York">America/New_York</option>
+        <option value="Europe/London">Europe/London</option>
+      </select>
+    </div>
+
+    <div id="status" class="status hidden"></div>
+  </div>
+
+  <div id="conversation-view" class="conversation-container hidden">
+    <!-- Initial Prompt Section -->
+    <div id="prompt-section" class="prompt-section hidden">
+      <div class="prompt-header">
+        <h2>💬 用户初始提示 (Prompt)</h2>
+        <div class="prompt-meta">
+          <span id="prompt-time" class="prompt-time"></span>
+        </div>
+      </div>
+      <div class="prompt-content">
+        <div id="prompt-text" class="prompt-text"></div>
+      </div>
+    </div>
+
+    <div class="conversation-header">
+      <h2>📊 对话概览</h2>
+      <div class="conversation-stats">
+        <div class="stat-item">
+          <div id="total-messages" class="stat-value">0</div>
+          <div class="stat-label">总消息数</div>
+        </div>
+        <div class="stat-item">
+          <div id="user-messages" class="stat-value">0</div>
+          <div class="stat-label">用户消息</div>
+        </div>
+        <div class="stat-item">
+          <div id="assistant-messages" class="stat-value">0</div>
+          <div class="stat-label">助手消息</div>
+        </div>
+        <div class="stat-item">
+          <div id="tool-messages" class="stat-value">0</div>
+          <div class="stat-label">工具消息</div>
+        </div>
+        <div class="stat-item">
+          <div id="time-span" class="stat-value">-</div>
+          <div class="stat-label">时间跨度</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div class="filter-row">
+        <label>显示消息类型:</label>
+        <div class="filter-checkbox">
+          <input type="checkbox" id="show-user" checked>
+          <label for="show-user">用户消息</label>
+        </div>
+        <div class="filter-checkbox">
+          <input type="checkbox" id="show-assistant" checked>
+          <label for="show-assistant">助手消息</label>
+        </div>
+        <div class="filter-checkbox">
+          <input type="checkbox" id="show-tool" checked>
+          <label for="show-tool">工具消息</label>
+        </div>
+      </div>
+    </div>
+
+    <div id="timeline" class="timeline">
+      <!-- Messages will be inserted here -->
+    </div>
+  </div>
+
+  <script src="conversation-view.js"></script>
+</body>
+</html>

@@ -231,6 +231,9 @@ function init() {
   const jsonText = document.getElementById('json-text');
   const btnParseText = document.getElementById('btn-parse-text');
   const btnClear = document.getElementById('btn-clear');
+  const urlInput = document.getElementById('url-input');
+  const btnFetchUrl = document.getElementById('btn-fetch-url');
+  const urlStatus = document.getElementById('url-status');
 
   const process = (data) => {
     const results = handleRawJson(data);
@@ -280,6 +283,234 @@ function init() {
     const text = await f.text();
     process(JSON.parse(text));
   });
+
+  // URL fetch support
+  btnFetchUrl.addEventListener('click', async () => {
+    const url = urlInput.value.trim();
+    if (!url) {
+      showUrlStatus('Please enter a URL', 'error');
+      return;
+    }
+
+    try {
+      showUrlStatus('Fetching data...', 'loading');
+      
+      // Extract thread ID from the share URL and construct API URL
+      let apiUrl = url;
+      let requestOptions = {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        },
+        mode: 'cors'
+      };
+
+      if (url.includes('staging.societas.ms/share/')) {
+        const threadId = url.split('/share/')[1];
+        if (threadId) {
+          showUrlStatus(`Extracted thread ID: ${threadId}, trying different API endpoints...`, 'loading');
+          
+          // Try different possible API endpoints
+          const possibleEndpoints = [
+            `https://staging.societas.ms/api/messages/${threadId}`,
+            `https://staging.societas.ms/api/thread/${threadId}/messages`,
+            `https://staging.societas.ms/api/conversation/${threadId}`,
+            `https://staging.societas.ms/api/chat/${threadId}`,
+            `https://staging.societas.ms/share/${threadId}.json`,
+            `https://staging.societas.ms/api/share/${threadId}`
+          ];
+          
+          // Start with the first endpoint
+          apiUrl = possibleEndpoints[0];
+          requestOptions = {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            },
+            mode: 'cors'
+          };
+        }
+      }
+      
+      // Try multiple endpoints if we have a Societas URL
+      let response;
+      let lastError;
+      
+      if (url.includes('staging.societas.ms/share/')) {
+        const threadId = url.split('/share/')[1];
+        
+        showUrlStatus(`Extracted thread ID: ${threadId}, using corsproxy.io...`, 'loading');
+        
+        const postData = JSON.stringify({ thread_id: threadId });
+        
+        // Use corsproxy.io directly since we know it works
+        const proxyUrl = `https://corsproxy.io/?https://staging.societas.ms/api/message/list`;
+        
+        try {
+          response = await fetch(proxyUrl, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            },
+            body: postData
+          });
+          
+          if (response.ok) {
+            console.log(`Success with corsproxy.io`);
+          } else {
+            console.log(`Corsproxy.io failed: ${response.status} ${response.statusText}`);
+            throw new Error(`Corsproxy.io failed: ${response.status} ${response.statusText}`);
+          }
+        } catch (corsproxyError) {
+          console.log('Corsproxy.io failed, trying fallback methods...', corsproxyError);
+          
+          // Try fallback methods
+          const fallbacks = [
+            // Try allorigins with GET method as fallback
+            {
+              name: 'allorigins GET',
+              url: `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://staging.societas.ms/api/message/list?thread_id=${threadId}`)}`,
+              method: 'GET',
+              body: null
+            },
+            // Try cors-anywhere if available
+            {
+              name: 'cors-anywhere',
+              url: `https://cors-anywhere.herokuapp.com/https://staging.societas.ms/api/message/list`,
+              method: 'POST',
+              body: postData
+            }
+          ];
+          
+          for (let i = 0; i < fallbacks.length; i++) {
+            const fallback = fallbacks[i];
+            showUrlStatus(`Trying fallback ${i + 1}/${fallbacks.length}: ${fallback.name}...`, 'loading');
+            
+            try {
+              response = await fetch(fallback.url, {
+                method: fallback.method,
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                },
+                body: fallback.body
+              });
+              
+              if (response.ok) {
+                console.log(`Success with fallback ${fallback.name}: ${fallback.url}`);
+                break;
+              } else {
+                console.log(`Fallback ${fallback.name} failed: ${response.status}`);
+                lastError = new Error(`Fallback ${fallback.name} failed: ${response.status}`);
+              }
+            } catch (fallbackError) {
+              console.log(`Fallback ${fallback.name} error:`, fallbackError);
+              lastError = fallbackError;
+            }
+          }
+        }
+      } else {
+        // For non-Societas URLs, use the original logic
+        response = await fetch(apiUrl, requestOptions);
+      }
+      
+      if (!response || !response.ok) {
+        throw lastError || new Error(`All endpoints failed`);
+      }
+      
+      const data = await response.json();
+      console.log('Fetched data structure:', data);
+      console.log('Data keys:', Object.keys(data));
+      
+      // Check if data structure matches expected format
+      if (!data || !Array.isArray(data.data)) {
+        console.error('Unexpected data structure:', data);
+        throw new Error(`Invalid data structure: expected { data: [...] }, got ${JSON.stringify(data).substring(0, 100)}...`);
+      }
+      
+      showUrlStatus('Data fetched successfully!', 'success');
+      process(data);
+      
+    } catch (error) {
+      console.error('Error fetching URL:', error);
+      
+      // If direct fetch fails, try using a CORS proxy
+      if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+        try {
+          showUrlStatus('Trying CORS proxy...', 'loading');
+          
+          // Use proxy for the API URL if we extracted a thread ID
+          let proxyUrl;
+          let proxyOptions = {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+          };
+
+          if (url.includes('staging.societas.ms/share/')) {
+            const threadId = url.split('/share/')[1];
+            // For POST requests through proxy, we need to use a different approach
+            // Let's try the allorigins proxy with POST method
+            proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://staging.societas.ms/api/message/list')}`;
+            
+            // Unfortunately, allorigins doesn't support POST with body through URL params
+            // Let's try a different proxy approach or fallback to GET with query params
+            const getApiUrl = `https://staging.societas.ms/api/message/list?thread_id=${threadId}`;
+            proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(getApiUrl)}`;
+          } else {
+            proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+          }
+          
+          const proxyResponse = await fetch(proxyUrl, proxyOptions);
+          if (!proxyResponse.ok) {
+            throw new Error(`Proxy HTTP ${proxyResponse.status}`);
+          }
+          
+          const data = await proxyResponse.json();
+          console.log('Proxy fetched data structure:', data);
+          console.log('Proxy data keys:', Object.keys(data));
+          
+          // Check if data structure matches expected format
+          if (!data || !Array.isArray(data.data)) {
+            console.error('Unexpected proxy data structure:', data);
+            throw new Error(`Invalid proxy data structure: expected { data: [...] }, got ${JSON.stringify(data).substring(0, 100)}...`);
+          }
+          
+          showUrlStatus('Data fetched via proxy!', 'success');
+          process(data);
+          
+        } catch (proxyError) {
+          console.error('Proxy fetch failed:', proxyError);
+          showUrlStatus(`Failed to fetch data: ${proxyError.message}`, 'error');
+        }
+      } else {
+        showUrlStatus(`Failed to fetch data: ${error.message}`, 'error');
+      }
+    }
+  });
+
+  // Handle Enter key in URL input
+  urlInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      btnFetchUrl.click();
+    }
+  });
+}
+
+function showUrlStatus(message, type) {
+  const urlStatus = document.getElementById('url-status');
+  urlStatus.textContent = message;
+  urlStatus.className = `status-message ${type}`;
 }
 
 window.addEventListener('DOMContentLoaded', init); 

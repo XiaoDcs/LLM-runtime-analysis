@@ -9,7 +9,7 @@
 <body>
   <header>
     <h1>LLM Time Analysis</h1>
-    <p>Compute LLM-only runtimes from a time.json file entirely in the browser.</p>
+    <p>Compute LLM-only runtimes from time.json files or Societas share URLs entirely in the browser.</p>
   </header>
 
   <section class="controls">
@@ -37,6 +37,16 @@
       <div class="control-row">
         <button id="btn-parse-text">Parse Pasted JSON</button>
       </div>
+    </details>
+
+    <details>
+      <summary>Paste URL ✨ (New! Auto-fetch from Societas URLs)</summary>
+      <div class="control-row">
+        <input id="url-input" type="url" placeholder="Paste URL here (e.g., https://staging.societas.ms/share/...)" />
+        <button id="btn-fetch-url">Fetch & Parse from URL</button>
+      </div>
+      <div class="hint">✅ Automatically extracts thread ID and fetches data using corsproxy.io proxy</div>
+      <div id="url-status" class="status-message"></div>
     </details>
   </section>
 
@@ -107,6 +117,23 @@
 
   <footer>
     <p>All parsing is done locally in your browser. No data leaves your device.</p>
+    <div style="margin: 15px 0; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+      <p style="margin: 0 0 10px; font-weight: bold; color: #1976d2;">🆕 新功能：AI对话分析工具</p>
+      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <p style="margin: 0;">
+          <a href="conversation-view.html" style="color: #1976d2; text-decoration: none; font-weight: 600;">
+            📱 单个对话可视化 →
+          </a>
+          <span style="color: #666; margin-left: 10px;">详细展示单个对话的内容和时间</span>
+        </p>
+        <p style="margin: 0;">
+          <a href="batch-analysis.html" style="color: #1976d2; text-decoration: none; font-weight: 600;">
+            🚀 批量对话分析 →
+          </a>
+          <span style="color: #666; margin-left: 10px;">一次性分析多个对话，快速概览</span>
+        </p>
+      </div>
+    </div>
     <p>
       <a href="https://pages.github.com/" target="_blank" rel="noopener">Deploy to GitHub Pages</a>
     </p>

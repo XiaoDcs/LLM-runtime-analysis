@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 AI对话批量分析工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .input-section {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .input-section h2 {
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .batch-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-family: Monaco, 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        .batch-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+        }
+
+        .status-message {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+
+        .status-message.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+
+        .status-message.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .status-message.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .results-section {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f3f4;
+        }
+
+        .results-stats {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px 20px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .conversations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .conversation-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .conversation-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+        }
+
+        .conversation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .conversation-id {
+            font-family: Monaco, monospace;
+            font-size: 11px;
+            color: #6c757d;
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .conversation-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-loading {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .prompt-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prompt-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .prompt-header {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .prompt-text {
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
+            z-index: 1;
+        }
+
+        .conversation-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .mini-stat {
+            text-align: center;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .mini-stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .mini-stat-label {
+            font-size: 10px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+
+        .conversation-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .view-details-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-details-btn:hover {
+            background: #218838;
+        }
+
+        .timezone-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timezone-control label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .timezone-control select {
+            padding: 8px 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .conversations-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .results-stats {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AI对话批量分析工具</h1>
+            <p>一次性分析多个Societas对话链接，快速了解用户需求和对话统计</p>
+        </div>
+
+        <div class="input-section">
+            <h2>📋 批量输入URL</h2>
+            <textarea 
+                id="batch-urls" 
+                class="batch-input" 
+                placeholder="请粘贴多个Societas URL，每行一个，例如：
+https://staging.societas.ms/share/d8dc89b3-da5c-476a-81a9-1974c083f5fe
+https://staging.societas.ms/share/3c23783d-f052-488a-92ae-0657c30ba990
+https://staging.societas.ms/share/another-thread-id
+
+支持的格式：
+- Societas分享链接
+- 直接的thread_id
+- API链接"></textarea>
+            
+            <div class="controls">
+                <button id="btn-analyze" class="btn">🔍 开始批量分析</button>
+                <button id="btn-clear" class="btn btn-secondary">🗑️ 清空</button>
+                <div class="timezone-control">
+                    <label for="timezone-select">时区:</label>
+                    <select id="timezone-select">
+                        <option value="UTC">UTC</option>
+                        <option value="Asia/Shanghai" selected>UTC+8 (Asia/Shanghai)</option>
+                        <option value="America/Los_Angeles">America/Los_Angeles</option>
+                        <option value="America/New_York">America/New_York</option>
+                        <option value="Europe/London">Europe/London</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="batch-status" class="status-message hidden"></div>
+            <div class="progress-bar hidden" id="progress-container">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <div id="results-section" class="results-section">
+            <div class="results-header">
+                <h2>📊 分析结果</h2>
+                <div class="controls">
+                    <button id="btn-export-csv" class="btn">📥 导出CSV</button>
+                    <button id="btn-export-json" class="btn btn-secondary">📋 导出JSON</button>
+                </div>
+            </div>
+            
+            <div class="results-stats">
+                <div class="stat-card">
+                    <div id="total-analyzed" class="stat-value">0</div>
+                    <div class="stat-label">已分析对话</div>
+                </div>
+                <div class="stat-card">
+                    <div id="successful-analyses" class="stat-value">0</div>
+                    <div class="stat-label">成功分析</div>
+                </div>
+                <div class="stat-card">
+                    <div id="total-messages" class="stat-value">0</div>
+                    <div class="stat-label">总消息数</div>
+                </div>
+                <div class="stat-card">
+                    <div id="avg-duration" class="stat-value">0</div>
+                    <div class="stat-label">平均时长(分钟)</div>
+                </div>
+            </div>
+            
+            <div id="conversations-container" class="conversations-grid"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTimezone = 'Asia/Shanghai';
+        let analysisResults = [];
+        let isAnalyzing = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventListeners();
+        });
+
+        function initializeEventListeners() {
+            document.getElementById('btn-analyze').addEventListener('click', startBatchAnalysis);
+            document.getElementById('btn-clear').addEventListener('click', clearAll);
+            document.getElementById('btn-export-csv').addEventListener('click', exportToCSV);
+            document.getElementById('btn-export-json').addEventListener('click', exportToJSON);
+            document.getElementById('timezone-select').addEventListener('change', handleTimezoneChange);
+        }
+
+        function startBatchAnalysis() {
+            if (isAnalyzing) return;
+            
+            const urls = document.getElementById('batch-urls').value.trim();
+            if (!urls) {
+                showStatus('请输入至少一个URL', 'error');
+                return;
+            }
+
+            const urlList = urls.split('\n')
+                .map(url => url.trim())
+                .filter(url => url && url.length > 0);
+
+            if (urlList.length === 0) {
+                showStatus('请输入有效的URL', 'error');
+                return;
+            }
+
+            isAnalyzing = true;
+            analysisResults = [];
+            
+            updateUI();
+            showStatus(`开始分析 ${urlList.length} 个对话...`, 'loading');
+            showProgress(true);
+            
+            analyzeBatch(urlList);
+        }
+
+        async function analyzeBatch(urlList) {
+            const total = urlList.length;
+            let completed = 0;
+            let successful = 0;
+
+            for (let i = 0; i < urlList.length; i++) {
+                const url = urlList[i];
+                updateProgress((i / total) * 100);
+                
+                try {
+                    showStatus(`正在分析第 ${i + 1}/${total} 个对话...`, 'loading');
+                    const result = await analyzeConversation(url);
+                    
+                    if (result.success) {
+                        analysisResults.push(result);
+                        successful++;
+                    } else {
+                        analysisResults.push({
+                            success: false,
+                            url: url,
+                            error: result.error,
+                            threadId: extractThreadId(url)
+                        });
+                    }
+                } catch (error) {
+                    analysisResults.push({
+                        success: false,
+                        url: url,
+                        error: error.message,
+                        threadId: extractThreadId(url)
+                    });
+                }
+                
+                completed++;
+                updateProgress((completed / total) * 100);
+                
+                // Small delay to prevent overwhelming the server
+                if (i < urlList.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            }
+
+            isAnalyzing = false;
+            updateProgress(100);
+            showStatus(`分析完成！成功: ${successful}/${total}`, successful > 0 ? 'success' : 'error');
+            
+            setTimeout(() => {
+                showProgress(false);
+                renderResults();
+            }, 1000);
+        }
+
+        async function analyzeConversation(url) {
+            const threadId = extractThreadId(url);
+            if (!threadId) {
+                throw new Error('无法从URL中提取thread_id');
+            }
+
+            try {
+                // Use corsproxy.io for fetching data
+                const proxyUrl = `https://corsproxy.io/?https://staging.societas.ms/api/message/list`;
+                const response = await fetch(proxyUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'User-Agent': 'Mozilla/5.0 (compatible; ConversationAnalyzer/1.0)'
+                    },
+                    body: JSON.stringify({ thread_id: threadId })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data.data || !Array.isArray(data.data)) {
+                    throw new Error('无效的响应格式');
+                }
+
+                return processConversationData(data, url, threadId);
+            } catch (error) {
+                throw new Error(`获取数据失败: ${error.message}`);
+            }
+        }
+
+        function processConversationData(data, url, threadId) {
+            const messages = data.data.map(msg => ({
+                ...msg,
+                parsedDate: new Date(msg.created_at),
+                metadata: typeof msg.metadata === 'string' ? 
+                    (() => { try { return JSON.parse(msg.metadata); } catch { return {}; } })() : 
+                    (msg.metadata || {})
+            })).sort((a, b) => a.parsedDate - b.parsedDate);
+
+            // Find initial prompt
+            const initialPrompt = messages.find(msg => msg.role === 'user' || msg.type === 'user');
+            const promptText = initialPrompt ? extractPureTextContent(initialPrompt.content) : '';
+
+            // Calculate statistics
+            const stats = messages.reduce((acc, msg) => {
+                const type = msg.role || msg.type;
+                acc[type] = (acc[type] || 0) + 1;
+                return acc;
+            }, {});
+
+            // Calculate time span
+            const firstMessage = messages[0];
+            const lastMessage = messages[messages.length - 1];
+            const timeSpanMs = lastMessage ? lastMessage.parsedDate - firstMessage.parsedDate : 0;
+            const timeSpanMinutes = Math.round(timeSpanMs / (1000 * 60));
+
+            // Calculate LLM runtime (simplified version)
+            const llmRuntime = calculateLLMRuntime(messages);
+
+            return {
+                success: true,
+                url: url,
+                threadId: threadId,
+                promptText: promptText,
+                totalMessages: messages.length,
+                userMessages: stats.user || 0,
+                assistantMessages: stats.assistant || 0,
+                toolMessages: (stats.tool || 0) + (stats.function || 0),
+                timeSpanMinutes: timeSpanMinutes,
+                llmRuntimeSeconds: llmRuntime,
+                firstMessageTime: firstMessage ? firstMessage.parsedDate : null,
+                lastMessageTime: lastMessage ? lastMessage.parsedDate : null,
+                messages: messages
+            };
+        }
+
+        function calculateLLMRuntime(messages) {
+            // Simplified LLM runtime calculation
+            // Find runs from assistant to next non-assistant message
+            let totalRuntime = 0;
+            let runStart = null;
+
+            for (let i = 0; i < messages.length; i++) {
+                const msg = messages[i];
+                const type = msg.role || msg.type;
+
+                if (type === 'assistant' && !runStart) {
+                    runStart = msg.parsedDate;
+                } else if (runStart && type !== 'assistant') {
+                    const runtime = (msg.parsedDate - runStart) / 1000;
+                    totalRuntime += runtime;
+                    runStart = null;
+                }
+            }
+
+            return Math.round(totalRuntime);
+        }
+
+        function extractPureTextContent(content) {
+            if (!content) return '';
+            
+            if (typeof content === 'string') {
+                return cleanContentText(content);
+            }
+            
+            if (Array.isArray(content)) {
+                const textParts = content
+                    .filter(item => item.type === 'text' || typeof item === 'string')
+                    .map(item => typeof item === 'string' ? item : item.text || item.content || '')
+                    .join(' ');
+                return cleanContentText(textParts);
+            }
+            
+            if (typeof content === 'object' && content.text) {
+                return cleanContentText(content.text);
+            }
+            
+            return cleanContentText(String(content));
+        }
+
+        function cleanContentText(text) {
+            if (!text || typeof text !== 'string') return text;
+            
+            // Remove JSON arrays and clean up
+            text = text.replace(/\n\n\[\"[^"]+\"(?:,\s*\"[^"]+\")*\]\s*$/g, '');
+            text = text.replace(/^\[\"[^"]+\"(?:,\s*\"[^"]+\")*\]\s*\n\n/g, '');
+            text = text.replace(/\n\n\[[^\]]+\]\s*$/g, '');
+            text = text.replace(/\n{3,}/g, '\n\n');
+            return text.trim();
+        }
+
+        function extractThreadId(url) {
+            // Extract thread_id from various URL formats
+            const patterns = [
+                /\/share\/([a-f0-9\-]{36})/i,
+                /thread_id=([a-f0-9\-]{36})/i,
+                /^([a-f0-9\-]{36})$/i
+            ];
+
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) {
+                    return match[1];
+                }
+            }
+
+            return null;
+        }
+
+        function renderResults() {
+            const container = document.getElementById('conversations-container');
+            const resultsSection = document.getElementById('results-section');
+            
+            container.innerHTML = '';
+            
+            if (analysisResults.length === 0) {
+                resultsSection.style.display = 'none';
+                return;
+            }
+
+            resultsSection.style.display = 'block';
+            updateOverallStats();
+
+            analysisResults.forEach((result, index) => {
+                const card = createConversationCard(result, index);
+                container.appendChild(card);
+            });
+        }
+
+        function createConversationCard(result, index) {
+            const card = document.createElement('div');
+            card.className = 'conversation-card';
+            
+            if (result.success) {
+                card.innerHTML = `
+                    <div class="conversation-header">
+                        <div class="conversation-id">#${index + 1} ${result.threadId.substring(0, 8)}...</div>
+                        <div class="conversation-status status-success">✅ 成功</div>
+                    </div>
+                    
+                    <div class="prompt-section">
+                        <div class="prompt-header">💬 用户初始提示</div>
+                        <div class="prompt-text">${truncateText(result.promptText, 150)}</div>
+                    </div>
+                    
+                    <div class="conversation-stats">
+                        <div class="mini-stat">
+                            <div class="mini-stat-value">${result.totalMessages}</div>
+                            <div class="mini-stat-label">总消息</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="mini-stat-value">${result.userMessages}</div>
+                            <div class="mini-stat-label">用户</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="mini-stat-value">${result.assistantMessages}</div>
+                            <div class="mini-stat-label">助手</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="mini-stat-value">${result.toolMessages}</div>
+                            <div class="mini-stat-label">工具</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="mini-stat-value">${result.timeSpanMinutes}</div>
+                            <div class="mini-stat-label">分钟</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="mini-stat-value">${result.llmRuntimeSeconds}</div>
+                            <div class="mini-stat-label">LLM秒</div>
+                        </div>
+                    </div>
+                    
+                    <div class="conversation-meta">
+                        <span>${formatDate(result.firstMessageTime)} ~ ${formatDate(result.lastMessageTime)}</span>
+                        <button class="view-details-btn" onclick="viewConversationDetails('${result.threadId}')">
+                            📱 查看详情
+                        </button>
+                    </div>
+                `;
+            } else {
+                card.innerHTML = `
+                    <div class="conversation-header">
+                        <div class="conversation-id">#${index + 1} ${result.threadId ? result.threadId.substring(0, 8) + '...' : 'Unknown'}</div>
+                        <div class="conversation-status status-error">❌ 失败</div>
+                    </div>
+                    
+                    <div style="padding: 15px; background: #f8d7da; border-radius: 8px; color: #721c24;">
+                        <strong>错误:</strong> ${result.error}
+                    </div>
+                    
+                    <div class="conversation-meta">
+                        <span>URL: ${truncateText(result.url, 50)}</span>
+                    </div>
+                `;
+            }
+            
+            return card;
+        }
+
+        function updateOverallStats() {
+            const successful = analysisResults.filter(r => r.success);
+            const totalMessages = successful.reduce((sum, r) => sum + r.totalMessages, 0);
+            const avgDuration = successful.length > 0 ? 
+                Math.round(successful.reduce((sum, r) => sum + r.timeSpanMinutes, 0) / successful.length) : 0;
+
+            document.getElementById('total-analyzed').textContent = analysisResults.length;
+            document.getElementById('successful-analyses').textContent = successful.length;
+            document.getElementById('total-messages').textContent = totalMessages;
+            document.getElementById('avg-duration').textContent = avgDuration;
+        }
+
+        function viewConversationDetails(threadId) {
+            // Open detailed view in new tab
+            const url = `conversation-view.html?thread_id=${threadId}`;
+            window.open(url, '_blank');
+        }
+
+        function formatDate(date) {
+            if (!date) return '-';
+            return new Intl.DateTimeFormat('zh-CN', {
+                timeZone: currentTimezone,
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(date);
+        }
+
+        function truncateText(text, maxLength) {
+            if (!text || text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('batch-status');
+            statusEl.textContent = message;
+            statusEl.className = `status-message ${type}`;
+            statusEl.classList.remove('hidden');
+        }
+
+        function showProgress(show) {
+            const progressContainer = document.getElementById('progress-container');
+            if (show) {
+                progressContainer.classList.remove('hidden');
+            } else {
+                progressContainer.classList.add('hidden');
+            }
+        }
+
+        function updateProgress(percent) {
+            const progressFill = document.getElementById('progress-fill');
+            progressFill.style.width = percent + '%';
+        }
+
+        function updateUI() {
+            const analyzeBtn = document.getElementById('btn-analyze');
+            analyzeBtn.disabled = isAnalyzing;
+            analyzeBtn.textContent = isAnalyzing ? '🔄 分析中...' : '🔍 开始批量分析';
+        }
+
+        function clearAll() {
+            document.getElementById('batch-urls').value = '';
+            document.getElementById('results-section').style.display = 'none';
+            document.getElementById('batch-status').classList.add('hidden');
+            analysisResults = [];
+        }
+
+        function handleTimezoneChange() {
+            currentTimezone = document.getElementById('timezone-select').value;
+            if (analysisResults.length > 0) {
+                renderResults();
+            }
+        }
+
+        function exportToCSV() {
+            const successful = analysisResults.filter(r => r.success);
+            if (successful.length === 0) {
+                alert('没有成功的分析结果可导出');
+                return;
+            }
+
+            const headers = ['Thread ID', 'Prompt', 'Total Messages', 'User Messages', 'Assistant Messages', 'Tool Messages', 'Duration (min)', 'LLM Runtime (s)', 'First Message', 'Last Message'];
+            const rows = successful.map(r => [
+                r.threadId,
+                `"${r.promptText.replace(/"/g, '""')}"`,
+                r.totalMessages,
+                r.userMessages,
+                r.assistantMessages,
+                r.toolMessages,
+                r.timeSpanMinutes,
+                r.llmRuntimeSeconds,
+                r.firstMessageTime ? r.firstMessageTime.toISOString() : '',
+                r.lastMessageTime ? r.lastMessageTime.toISOString() : ''
+            ]);
+
+            const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+            downloadFile(csv, 'batch-analysis-results.csv', 'text/csv');
+        }
+
+        function exportToJSON() {
+            const dataToExport = {
+                exportTime: new Date().toISOString(),
+                timezone: currentTimezone,
+                totalAnalyzed: analysisResults.length,
+                successful: analysisResults.filter(r => r.success).length,
+                results: analysisResults
+            };
+
+            const json = JSON.stringify(dataToExport, null, 2);
+            downloadFile(json, 'batch-analysis-results.json', 'application/json');
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
+

@@ -30,4 +30,11 @@ th, td { padding: 8px 10px; border-bottom: 1px solid #1c2735; text-align: left; 
 th { position: sticky; top: 0; background: #0b0f14; }
 
 footer { padding: 24px; color: #93a5bb; }
-footer a { color: #93c5fd; } 
+footer a { color: #93c5fd; }
+
+.status-message { margin-top: 8px; padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+.status-message.success { background: #065f46; color: #d1fae5; border: 1px solid #047857; }
+.status-message.error { background: #7f1d1d; color: #fecaca; border: 1px solid #dc2626; }
+.status-message.loading { background: #1e40af; color: #dbeafe; border: 1px solid #2563eb; }
+
+input[type=url] { flex: 1; min-width: 300px; background: #0e141b; color: #e7eef7; border: 1px solid #223042; padding: 8px 12px; border-radius: 6px; } 

@@ -1,69 +1,144 @@
-# LLM 运行时长分析工具
+# 🚀 AI对话分析工具套件
 
-一个用于从 `time.json` 会话日志中计算 LLM 真正运行时长（排除重试等待与等待用户回复）的小工具。当前项目包含：
-- 根目录静态网页（`index.html`, `app.js`, `styles.css`）：纯前端解析，无需后端，可部署到 GitHub Pages
-- Python CLI（`py/compute_llm_time.py`）：本地命令行离线分析
-- `.gitignore` 已忽略 `time.json`
+基于 JavaScript 的 AI 对话分析工具，支持 LLM 时间分析、对话可视化和批量分析。
 
-## 计算口径
-- 运行片段汇总（Run-sum）：从每条 `assistant` 消息到其对应的 `tool` 结果所形成的窗口之和；遇到下一条 `assistant` 或任何 `user` 消息即结束当前窗口。
-- 会话周期汇总（Cycle-sum）：以每条 `user` 消息为起点，统计到“下一条 `user` 出现前的最后一条非 `user` 消息”为止；将“Retry”视为 `user` 消息，从而排除重试等待与等待用户回复的时间。
+## ✨ 功能特点
 
-## 目录结构
+### 📊 时间分析
+- **LLM运行窗口分析**: 从assistant消息到下一个非assistant消息的时间跨度
+- **LLM活跃周期分析**: 从用户触发到最后一个非用户消息的时间跨度
+- **多时区支持**: UTC、上海、洛杉矶、纽约、伦敦等时区
+- **CSV导出**: 支持导出分析结果
+
+### 🎨 对话可视化
+- **时间线展示**: 按时间顺序展示每条消息
+- **用户Prompt突出**: 特别突出显示用户的初始提示
+- **多模态内容**: 支持文本、图片、音频等内容类型
+- **工具调用可视化**: 清晰展示AI工具调用过程
+- **智能内容清理**: 自动移除技术性标识符，突出核心内容
+
+### 🚀 批量分析
+- **一次性分析多个对话**: 支持批量输入多个URL
+- **快速概览**: 显示每个对话的Prompt、统计数据和时间信息
+- **批量导出**: 支持CSV和JSON格式导出
+- **实时进度**: 显示分析进度和状态
+
+### 🌐 数据输入方式
+- **本地文件上传**: 支持拖拽上传 time.json 文件
+- **JSON粘贴**: 直接粘贴 JSON 内容进行分析
+- **URL自动获取**: 支持从 Societas 分享链接自动获取数据
+- **批量URL处理**: 一次性处理多个对话链接
+
+## 🚀 本地使用
+
+### 启动本地服务器
+```bash
+python3 -m http.server 8000
 ```
-.
-├── index.html         # 前端静态页（上传/粘贴 time.json 即可解析）
-├── app.js             # 前端解析与计算逻辑（纯浏览器执行）
-├── styles.css         # 前端样式
+
+### 访问工具
+- **📊 主页**: http://localhost:8000/ - LLM时间分析工具
+- **📱 对话可视化**: http://localhost:8000/conversation-view.html - 单个对话详细可视化
+- **🚀 批量分析**: http://localhost:8000/batch-analysis.html - 批量对话分析
+
+### 使用方式
+1. **单个分析**: 上传文件、粘贴JSON或输入单个URL
+2. **对话可视化**: 查看详细的对话内容和时间线
+3. **批量分析**: 一次性分析多个对话，快速获取概览
+
+## 📁 目录结构
+```
+├── index.html              # 主页面 - LLM时间分析
+├── conversation-view.html  # 对话可视化页面
+├── batch-analysis.html     # 批量分析页面
+├── app.js                  # 主要逻辑
+├── conversation-view.js    # 对话可视化逻辑
+├── styles.css              # 样式文件
+├── proxy-server.js         # 本地CORS代理服务器
+├── start-servers.sh        # 启动脚本
 ├── py/
-│   └── compute_llm_time.py  # CLI：本地离线计算
-├── .gitignore         # 忽略 time.json 等本地文件
+│   └── compute_llm_time.py # Python版本（参考）
 └── README.md
 ```
 
-## 本地使用
-### A. 前端静态页（无需后端）
-- 直接双击打开 `index.html`（或右键用浏览器打开）。
-- 页面中选择/拖拽 `time.json`，或粘贴 JSON 文本，立即在本地浏览器解析。
-- 支持切换显示时区（默认 UTC+8）与导出 CSV（Run/Cycle）。
+## 🎯 核心特色
 
-可选：用本地静态服务器打开（例如）：
-```bash
-python3 -m http.server 8080
-# 浏览器访问 http://localhost:8080
+### 用户Prompt突出显示
+- **专用展示区域**: 页面顶部美丽的渐变区域专门展示用户初始提示
+- **纯文本提取**: 智能提取用户消息的核心内容，去除技术性JSON结构
+- **双重展示**: 既在顶部专区显示，也在时间线中特殊标识
+
+### 批量分析能力
+- **并发处理**: 支持同时分析多个对话
+- **实时反馈**: 显示分析进度和状态
+- **统计概览**: 提供总体统计和每个对话的详细信息
+- **导出功能**: 支持CSV和JSON格式的批量导出
+
+### 智能内容处理
+- **多模态支持**: 处理文本、图片、音频等不同类型的内容
+- **内容清理**: 自动移除搜索词数组等技术性标识符
+- **结构化展示**: 工具调用、函数调用等结构化数据的优雅展示
+
+## 🔧 技术实现
+
+### CORS解决方案
+- 使用 `corsproxy.io` 作为主要代理服务
+- 支持 POST 请求和复杂请求体
+- 自动处理Societas API的认证和跨域问题
+
+### 数据处理
+- **智能解析**: 自动识别不同的数据格式和结构
+- **时区处理**: 支持多时区显示和转换
+- **性能优化**: 高效处理大量对话数据
+
+## 📊 数据格式
+
+支持的 JSON 格式：
+```json
+{
+  "data": [
+    {
+      "message_id": "uuid",
+      "thread_id": "uuid", 
+      "role": "user|assistant|tool",
+      "type": "user|assistant|tool",
+      "created_at": "2024-01-01T12:00:00Z",
+      "content": "消息内容或多模态数组",
+      "tool_calls": [...],
+      "metadata": {...}
+    }
+  ]
+}
 ```
 
-### B. Python CLI（离线）
-```bash
-python3 py/compute_llm_time.py /绝对路径/到/time.json
+## 🎯 使用场景
+- **AI对话性能分析**: 评估LLM响应时间和效率
+- **用户需求研究**: 分析用户初始需求和交互模式
+- **批量质量评估**: 快速评估多个对话的质量和特征
+- **产品优化**: 基于数据洞察优化AI产品体验
+
+## 🌟 特别功能
+
+### 批量分析示例
 ```
-输出内容包含：
-- 每个 Run 窗口（assistant → 对应 tool）
-- 每个 Cycle 窗口（user 触发 → 下一个 user 出现前最后非 user）
-- 两种口径的总时长
+输入多个URL:
+https://staging.societas.ms/share/d8dc89b3-da5c-476a-81a9-1974c083f5fe
+https://staging.societas.ms/share/3c23783d-f052-488a-92ae-0657c30ba990
 
-## GitHub Pages 部署
-本项目前端为纯静态文件，适合 GitHub Pages。
+获得每个对话的:
+✅ 用户初始Prompt
+📊 消息统计 (总数/用户/助手/工具)
+⏱️ 时间跨度和LLM运行时间
+📱 直接跳转到详细可视化
+```
 
-1) 推送到 GitHub（你已设置远端并完成推送）。
-2) 在 GitHub 仓库 Settings → Pages：
-   - Source：Deploy from a branch
-   - Branch：选择 `main`
-   - Folder：选择 `/(root)`（根目录），保存
-3) Pages 生效后，访问 `https://<你的用户名>.github.io/<仓库名>/` 打开页面，上传/粘贴 `time.json` 即可在浏览器端完成计算。
+### 智能Prompt提取
+```
+原始数据:
+{"role": "user", "content": "I want to go to Kenya...\n\n[\"search terms\"]"}
 
-若你的 Pages 仅提供 `/docs` 作为目录选项，也可以将 `index.html / app.js / styles.css` 放到 `docs/` 后再选择 `/docs`。
+提取结果:
+"I want to go to Kenya..."  (自动移除技术性标识符)
+```
 
-## 数据隐私
-- 前端版本为纯客户端解析：文件仅在浏览器内存中处理，不会上传到任何服务器。
-- CLI 在本地运行，无网络传输。
-
-## 自定义与扩展
-- 若需更改是否计入某些 `tool` 类型或进一步细分窗口边界，请分别修改：
-  - 前端：`app.js` 中 `computeRuns` 与 `computeCycles`
-  - CLI：`py/compute_llm_time.py` 中对应的计算函数
-- 可加筛选（按会话/时间区间/消息类型）、记忆时区、最近文件列表等增强功能。
-
-## 常见问题
-- 时间戳解析异常：本工具已对 `Z` 与 `±HH:MM` 时区、可变长度小数秒做了兼容处理；若仍报错，请检查 `time.json` 时间格式是否标准 ISO8601。
-- 页面无输出：请打开浏览器 DevTools Console 查看 JSON 结构是否为 `{ data: [...] }`，或是否为空。 
+这个工具套件让AI对话分析变得简单而强大！🎉
