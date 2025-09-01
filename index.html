@@ -1,144 +1,3719 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LLM Time Analysis (Client-side)</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 AI对话分析工具 - 统一分析平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #2c3e50;
+            line-height: 1.6;
+            overflow-y: auto;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        .header {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding: 20px 0;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #5a6c7d;
+            font-weight: 300;
+        }
+
+        /* 统一输入区域 */
+        .unified-input {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .input-header {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .input-header h2 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+        }
+
+        .input-tabs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-tab {
+            background: #f8f9fa;
+            border: 2px solid #e1e8ed;
+            color: #5a6c7d;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .input-tab:hover {
+            background: #e9ecef;
+        }
+
+        .input-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .input-mode {
+            display: none;
+        }
+
+        .input-mode.active {
+            display: block !important;
+        }
+
+        /* 批量分析样式 */
+        .batch-input-section {
+            margin-bottom: 30px;
+        }
+        
+        .input-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+        }
+        
+        .input-section-header h3 {
+            color: white;
+            font-size: 1.4rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .batch-url-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+        
+        /* 横向布局样式 */
+        .url-inputs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .batch-paste-section, .manual-add-section {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #e1e8ed;
+            height: fit-content;
+        }
+        
+        .or-divider {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .url-inputs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .batch-url-container:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .url-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .url-item {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e1e8ed;
+            transition: all 0.3s ease;
+        }
+        
+        .url-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+        
+        .url-item input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            padding: 8px;
+        }
+        
+        .url-item input:focus {
+            outline: none;
+            background: #f8f9fa;
+        }
+        
+        .url-counter {
+            background: #667eea;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .add-url-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .add-url-btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+        
+        .paste-hint {
+            text-align: center;
+            color: #6c757d;
+            font-size: 13px;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        
+        .batch-paste-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e1e8ed;
+            margin-bottom: 20px;
+        }
+        
+        .paste-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .paste-header h4 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        .parse-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+        
+        .parse-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .batch-paste-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+        
+        .batch-paste-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .manual-add-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e1e8ed;
+        }
+        
+        .manual-add-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .manual-add-header h4 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        .url-count-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .small-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .small-btn:hover {
+            background: #218838;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: #c82333;
+        }
+
+        .url-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .url-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .url-item input {
+            flex: 1;
+        }
+
+        .batch-url-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .batch-url-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .or-divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+            color: #6c757d;
+        }
+
+        .or-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e1e8ed;
+            z-index: 1;
+        }
+
+        .or-divider span {
+            background: white;
+            padding: 0 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .batch-json-input {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .batch-json-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .analysis-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-group.timezone-selector {
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .control-group.analysis-type {
+            flex-direction: row;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #495057;
+            padding: 6px 14px;
+            border: 2px solid #e9ecef;
+            border-radius: 16px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .checkbox-label:hover {
+            border-color: #3498db;
+            background: #e3f2fd;
+            transform: translateY(-1px);
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #dee2e6;
+            border-radius: 3px;
+            background: white;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-label input[type="checkbox"]:checked {
+            background: #3498db;
+            border-color: #3498db;
+        }
+
+        .checkbox-label input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .checkbox-label:has(input[type="checkbox"]:checked) {
+            border-color: #3498db;
+            background: #3498db;
+            color: white;
+        }
+
+        /* 单次分析样式 */
+        .single-input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-methods {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .input-method {
+            flex: 1;
+            padding: 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 15px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .input-method.active {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-method h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .input-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .url-input, .json-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        .url-input:focus, .json-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .json-input {
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            align-self: flex-start;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .analyze-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status-message.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+            display: block;
+        }
+
+        .status-message.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+            display: block;
+        }
+
+        .status-message.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+            display: block;
+        }
+
+        /* 结果展示区域 */
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .results-container.single-mode {
+            grid-template-columns: 1fr;
+        }
+        
+        .results-container.single-mode .result-section {
+            grid-column: 1 / -1;
+        }
+
+        .result-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .result-section.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f3f4;
+        }
+
+        .result-header h2 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 批量分析结果样式 */
+        .batch-summary {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 2px solid #e1e8ed;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-stat {
+            text-align: center;
+        }
+
+        .summary-stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .summary-stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .batch-items-container {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        }
+
+        .batch-item {
+            background: white;
+            border-radius: 20px;
+            border: 2px solid #e1e8ed;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .batch-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .batch-item-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 25px;
+            border-bottom: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .batch-item-title {
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .batch-item-title .source-title {
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid transparent;
+        }
+        
+        .batch-item-title .source-title:hover {
+            border-bottom-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .batch-item-title .source-title:not([href]) {
+            cursor: default;
+            text-decoration: none;
+            border-bottom: none;
+        }
+
+        .batch-item-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .batch-item-status {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .batch-status {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .batch-status.处理中 {
+            background: rgba(255, 193, 7, 0.9);
+            color: #856404;
+        }
+
+        .batch-status.完成 {
+            background: rgba(40, 167, 69, 0.9);
+            color: white;
+        }
+
+        .batch-status.错误 {
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+        }
+
+        .batch-progress {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-left: 10px;
+        }
+
+        .batch-item-status.success {
+            background: rgba(39, 174, 96, 0.9);
+        }
+
+        .batch-item-status.error {
+            background: rgba(231, 76, 60, 0.9);
+        }
+
+        .batch-item-status.processing {
+            background: rgba(52, 152, 219, 0.9);
+        }
+
+        .batch-item-content {
+            padding: 25px;
+        }
+
+        .batch-item-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            background: #f8f9fa;
+            padding: 0 15px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .batch-item-tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            border-radius: 8px 8px 0 0;
+            position: relative;
+        }
+
+        .batch-item-tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .batch-item-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+
+        .batch-item-tab-content {
+            display: none;
+            min-height: 200px;
+        }
+
+        .batch-item-tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        .loading-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            color: #6c757d;
+            font-size: 14px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px dashed #dee2e6;
+        }
+
+        .batch-analysis-content {
+            line-height: 1.8;
+            color: #2c3e50;
+        }
+
+        .batch-time-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .batch-time-stat {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .batch-time-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .batch-time-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .batch-time-stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* 关键信息概览样式 */
+        .key-info-overview {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .key-info-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .key-info-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .key-info-title-area {
+            flex: 1;
+        }
+        
+        .key-info-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+        
+        .key-info-subtitle {
+            font-size: 12px;
+            color: #6c757d;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 3px 8px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        
+        .key-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+        
+        .key-stat-item {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e1e8ed;
+            transition: all 0.3s ease;
+        }
+        
+        .key-stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .key-stat-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+        
+        .key-stat-label {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .key-stat-highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .key-stat-highlight .key-stat-value {
+            color: white;
+        }
+        
+        .key-stat-highlight .key-stat-label {
+            color: rgba(255, 255, 255, 0.9);
+        }
+            margin-bottom: 15px;
+        }
+
+        .batch-time-stat {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .batch-time-stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .batch-time-stat-label {
+            font-size: 11px;
+            color: #6c757d;
+            margin-top: 3px;
+        }
+
+        .batch-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .batch-table th,
+        .batch-table td {
+            padding: 8px;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .batch-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .batch-viz-messages {
+            max-height: 800px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .batch-viz-message {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            border-left: 3px solid #e1e8ed;
+            font-size: 13px;
+        }
+
+        .batch-viz-message.user {
+            border-left-color: #28a745;
+            background: linear-gradient(135deg, #f8fff9 0%, #e8f8f5 100%);
+        }
+
+        .batch-viz-message.assistant {
+            border-left-color: #667eea;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8eaff 100%);
+        }
+
+        .batch-viz-message.tool {
+            border-left-color: #ffc107;
+            background: linear-gradient(135deg, #fffbf0 0%, #fff3cd 100%);
+        }
+
+        .batch-viz-message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .batch-viz-message-type {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .batch-viz-message-type.user {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .batch-viz-message-type.assistant {
+            background: #dae8fc;
+            color: #2980b9;
+        }
+
+        .batch-viz-message-type.tool {
+            background: #fdeaa7;
+            color: #d68910;
+        }
+
+        .batch-viz-message-time {
+            font-size: 10px;
+            color: #6c757d;
+            font-family: Monaco, 'Courier New', monospace;
+        }
+
+        .batch-viz-message-content {
+            color: #2c3e50;
+            line-height: 1.4;
+            font-size: 12px;
+        }
+
+        .result-content {
+            min-height: 200px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* 批量分析结果 */
+        .batch-results {
+            display: grid;
+            gap: 20px;
+        }
+
+        .conversation-item {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .conversation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .conversation-title {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .conversation-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            color: #5a6c7d;
+        }
+
+        .initial-prompt {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        .prompt-label {
+            font-weight: 600;
+            color: #28a745;
+            margin-bottom: 8px;
+        }
+
+        .prompt-text {
+            color: #2c3e50;
+            line-height: 1.5;
+        }
+
+        /* 折叠输入区域样式 */
+        .collapsible-input {
+            margin-bottom: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .collapsible-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .collapsible-header:hover {
+            background: #e9ecef;
+        }
+        
+        .collapsible-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .collapsible-toggle {
+            font-size: 12px;
+            color: #6c757d;
+            transition: transform 0.3s ease;
+        }
+        
+        .collapsible-toggle.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .collapsible-content.expanded {
+            max-height: 2000px;
+        }
+        
+        .collapsible-body {
+            padding: 20px;
+        }
+        
+        /* 时间分析结果 */
+        .time-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .summary-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #e1e8ed;
+        }
+
+        .summary-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            color: #5a6c7d;
+            font-size: 14px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid #e1e8ed;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* 对话可视化结果 */
+        .conversation-viz {
+            max-height: 1200px;
+            overflow-y: auto;
+        }
+        
+        /* 消息筛选器 */
+        .message-filter {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #e1e8ed;
+        }
+        
+        .filter-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .filter-options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-option input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        
+        .filter-option label {
+            font-size: 14px;
+            color: #495057;
+            cursor: pointer;
+        }
+        
+        /* Metadata 展开/收起 */
+        .metadata-toggle {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.2s ease;
+        }
+        
+        .metadata-toggle:hover {
+            background: #5a6268;
+        }
+        
+        .metadata-toggle.expanded {
+            background: #28a745;
+        }
+        
+        .message-metadata {
+            background: #f8f9fa;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6c757d;
+            display: none;
+        }
+        
+        .message-metadata.show {
+            display: block;
+        }
+        
+        .metadata-item {
+            margin: 5px 0;
+        }
+        
+        .metadata-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .metadata-value {
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+        
+        /* 隐藏的消息 */
+        .message.hidden {
+            display: none;
+        }
+        
+        /* 单次分析Prompt显示 */
+        .single-prompt-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .single-prompt-display .prompt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .single-prompt-display .prompt-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .single-prompt-display .prompt-link {
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+            padding-bottom: 1px;
+        }
+        
+        .single-prompt-display .prompt-link:hover {
+            border-bottom-color: white;
+            color: #f0f8ff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+        
+        .single-prompt-display .prompt-time {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+        
+        .single-prompt-display .prompt-content {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            font-size: 14px;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .viz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .viz-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .viz-stat {
+            text-align: center;
+        }
+
+        .viz-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .viz-stat-label {
+            font-size: 12px;
+            color: #5a6c7d;
+        }
+
+        .message {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid #e1e8ed;
+        }
+
+        .message.user {
+            border-left-color: #28a745;
+            background: linear-gradient(135deg, #f8fff9 0%, #e8f8f5 100%);
+        }
+
+        .message.assistant {
+            border-left-color: #667eea;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8eaff 100%);
+        }
+
+        .message.tool {
+            border-left-color: #ffc107;
+            background: linear-gradient(135deg, #fffbf0 0%, #fff3cd 100%);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .message-type {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .message-type.user {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .message-type.assistant {
+            background: #dae8fc;
+            color: #2980b9;
+        }
+
+        .message-type.tool {
+            background: #fdeaa7;
+            color: #d68910;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #5a6c7d;
+            font-family: Monaco, 'Courier New', monospace;
+        }
+
+        .message-content {
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .export-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: #218838;
+        }
+
+        .timezone-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .timezone-selector label {
+            font-size: 14px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .timezone-selector select,
+.control-group.timezone-selector select {
+            padding: 8px 16px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            font-size: 13px;
+            font-weight: 500;
+            color: #495057;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            min-width: 180px;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 14px;
+            padding-right: 30px;
+        }
+
+        .timezone-selector select:hover,
+.control-group.timezone-selector select:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .timezone-selector select:focus,
+.control-group.timezone-selector select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+        }
+
+        .timezone-selector select option {
+            background: white;
+            color: #495057;
+            padding: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-methods {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>LLM Time Analysis</h1>
-    <p>Compute LLM-only runtimes from time.json files or Societas share URLs entirely in the browser.</p>
-  </header>
+    <div class="container">
+  
+  <!-- 统一输入区域 -->
+        <div class="unified-input">
+            <div class="input-header">
+                <h2>📥 数据输入</h2>
+                <div class="input-tabs">
+                    <button class="input-tab" onclick="switchInputMode('single')">⚡ 单次分析</button>
+                    <button class="input-tab active" onclick="switchInputMode('batch')">🚀 批量分析</button>
+                </div>
+            </div>
+            
+            <!-- 批量分析模式 -->
+            <div id="batch-mode" class="input-mode active">
+                <!-- URL输入折叠区域 -->
+                <div class="collapsible-input">
+                    <div class="collapsible-header" onclick="toggleCollapsible('url-input')">
+                        <h3>🔗 批量URL输入</h3>
+                        <span class="collapsible-toggle expanded" id="url-input-toggle">▼</span>
+                    </div>
+                    <div class="collapsible-content expanded" id="url-input-content">
+                        <div class="collapsible-body">
+                            <div class="batch-url-container">
+                                <div class="url-inputs-grid">
+                                    <!-- 批量粘贴区域 -->
+                                    <div class="batch-paste-section">
+                                        <div class="paste-header">
+                                            <h4>📋 批量粘贴URL</h4>
+                                            <button class="parse-btn" onclick="parseBatchUrls()">解析URL</button>
+                                        </div>
+                                        <textarea 
+                                            class="batch-paste-input" 
+                                            id="batch-paste-input"
+                                            placeholder="粘贴多个URL，每行一个或用逗号分隔：&#10;https://your-server.com/share/abc123&#10;https://your-server.com/share/def456&#10;https://your-server.com/share/ghi789"
+                                        ></textarea>
+                                    </div>
+                                    
+                                    <!-- 手动添加URL区域 -->
+                                    <div class="manual-add-section">
+                                        <div class="manual-add-header">
+                                            <h4>🔗 手动添加URL</h4>
+                                            <button class="add-url-btn" onclick="addUrlInput()">
+                                                <span>+</span>
+                                                <span>添加URL</span>
+                                            </button>
+                                        </div>
+                                        <div id="url-list" class="url-list">
+                                            <div class="url-item">
+                                                <div class="url-counter">1</div>
+                                                <input type="url" class="batch-url-input" placeholder="粘贴 https://your-server.com/share/... URL">
+                                                <button class="remove-btn" onclick="removeUrlInput(this)">×</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="paste-hint">
+                                    💡 提示：左侧支持批量粘贴多个URL自动解析，右侧支持手动逐个添加
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- JSON输入折叠区域 -->
+                <div class="collapsible-input">
+                    <div class="collapsible-header" onclick="toggleCollapsible('json-input')">
+                        <h3>📄 批量JSON输入</h3>
+                        <span class="collapsible-toggle" id="json-input-toggle">▶</span>
+                    </div>
+                    <div class="collapsible-content" id="json-input-content">
+                        <div class="collapsible-body">
+                            <textarea class="batch-json-input" id="batch-json-input" placeholder="粘贴多个对话的JSON数据，每行一个，或用逗号分隔..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-controls">
+                    <div class="control-group analysis-type">
+                        <label>分析类型:</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="include-batch-single" checked>
+                                <span>批量分析</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="include-time-single" checked>
+                                <span>时间分析</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="include-viz-single" checked>
+                                <span>对话可视化</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group timezone-selector">
+                        <label for="timezone-select-single">时区:</label>
+                        <select id="timezone-select-single">
+                            <option value="UTC">UTC</option>
+                            <option value="Asia/Shanghai" selected>UTC+8 (Asia/Shanghai)</option>
+                            <option value="America/Los_Angeles">America/Los_Angeles</option>
+                            <option value="America/New_York">America/New_York</option>
+                            <option value="Europe/London">Europe/London</option>
+                        </select>
+                    </div>
+                    
+                    <button class="analyze-btn" onclick="analyzeData()">
+                        🚀 开始批量分析
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 单次分析模式 -->
+            <div id="single-mode" class="input-mode">
+                <div class="single-input-section">
+                    <div class="input-methods">
+                        <div class="input-method active" id="url-method-single" onclick="switchInputMethod('url')">
+                            <h3>🔗 URL输入</h3>
+                            <div class="input-controls">
+                                <input type="url" class="url-input" id="url-input" placeholder="粘贴 https://your-server.com/share/... URL">
+                            </div>
+                        </div>
+                        
+                        <div class="input-method" id="json-method-single" onclick="switchInputMethod('json')">
+                            <h3>📄 JSON输入</h3>
+                            <div class="input-controls">
+                                <textarea class="json-input" id="json-input" placeholder="粘贴对话JSON数据..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-controls">
+                        <div class="control-group timezone-selector">
+                            <label for="timezone-select-single">时区:</label>
+                            <select id="timezone-select-single">
+                                <option value="UTC">UTC</option>
+                                <option value="Asia/Shanghai" selected>UTC+8 (Asia/Shanghai)</option>
+                                <option value="America/Los_Angeles">America/Los_Angeles</option>
+                                <option value="America/New_York">America/New_York</option>
+                                <option value="Europe/London">Europe/London</option>
+                            </select>
+                        </div>
+                        
+                        <button class="analyze-btn" onclick="analyzeData()">
+                            ⚡ 开始分析
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="status" class="status-message"></div>
+        </div>
 
-  <section class="controls">
-    <div class="control-row">
-      <label for="tz-select">Display timezone:</label>
-      <select id="tz-select">
-        <option value="UTC">UTC</option>
-        <option value="Asia/Shanghai" selected>UTC+8 (Asia/Shanghai)</option>
-        <option value="America/Los_Angeles">America/Los_Angeles</option>
-        <option value="America/New_York">America/New_York</option>
-        <option value="Europe/London">Europe/London</option>
-      </select>
-      <button id="btn-clear">Clear Results</button>
+        <!-- 批量分析结果区域 -->
+        <div class="batch-results-section hidden" id="batch-results-section">
+            <div class="result-content" id="batch-results-content">
+                <div class="batch-summary" id="batch-summary">
+                    <!-- 批量分析统计信息 -->
+                </div>
+                <div class="batch-items-container" id="batch-items-container">
+                    <!-- 各个对话的分析结果 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 单次分析结果区域 -->
+        <div class="single-results-section hidden" id="single-results-section">
+            <div class="results-container">
+                <!-- 批量分析结果 -->
+                <div class="result-section hidden" id="batch-results">
+                    <div class="result-header">
+                        <h2>📊 批量分析结果</h2>
+                        <button class="export-btn" onclick="exportBatchResults()">导出结果</button>
+                    </div>
+                    <div class="result-content" id="batch-content">
+                        <!-- 批量分析结果将在这里显示 -->
+                    </div>
+                </div>
+
+                <!-- 时间分析结果 -->
+                <div class="result-section hidden" id="time-results">
+                    <div class="result-header">
+                        <h2>⏱️ 时间分析结果</h2>
+                        <button class="export-btn" onclick="exportTimeResults()">导出CSV</button>
+                    </div>
+                    <div class="result-content" id="time-content">
+                        <!-- 时间分析结果将在这里显示 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 对话可视化结果 -->
+            <div class="result-section full-width hidden" id="viz-results">
+                <div class="result-header">
+                    <h2>👁️ 对话可视化</h2>
+                    <div class="timezone-selector">
+                        <label for="timezone-select-viz">时区: </label>
+                        <select id="timezone-select-viz">
+                            <option value="UTC">UTC</option>
+                            <option value="Asia/Shanghai" selected>UTC+8 (Asia/Shanghai)</option>
+                            <option value="America/Los_Angeles">America/Los_Angeles</option>
+                            <option value="America/New_York">America/New_York</option>
+                            <option value="Europe/London">Europe/London</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="result-content" id="viz-content">
+                    <!-- 对话可视化结果将在这里显示 -->
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="control-row">
-      <label for="file-input" class="btn">Choose time.json</label>
-      <input id="file-input" type="file" accept="application/json,.json" />
-      <span class="hint">or drag & drop the file anywhere on this page</span>
-    </div>
+    <script>
+        // 全局变量
+        let currentData = null;
+        let currentInputMethod = 'url';
+        let currentTimezone = 'Asia/Shanghai';
+        let currentInputMode = 'single';
+        let batchResults = [];
+        let isProcessingBatch = false;
 
-    <details>
-      <summary>Paste JSON</summary>
-      <textarea id="json-text" placeholder="Paste raw JSON content here..."></textarea>
-      <div class="control-row">
-        <button id="btn-parse-text">Parse Pasted JSON</button>
-      </div>
-    </details>
+        // 切换输入模式（批量/单次）
+        function switchInputMode(mode) {
+            const tabs = document.querySelectorAll('.input-tab');
+            const modes = document.querySelectorAll('.input-mode');
+            const resultsContainer = document.querySelector('.results-container');
+            
+            // 更新标签状态
+            tabs.forEach(tab => {
+                if (tab.getAttribute('onclick') === `switchInputMode('${mode}')`) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // 更新模式显示
+            modes.forEach(m => {
+                if (m.id === `${mode}-mode`) {
+                    m.classList.add('active');
+                } else {
+                    m.classList.remove('active');
+                }
+            });
+            
+            // 更新结果容器布局
+            if (mode === 'single') {
+                resultsContainer.classList.add('single-mode');
+                // 隐藏批量分析结果
+                document.getElementById('batch-results').classList.add('hidden');
+            } else {
+                resultsContainer.classList.remove('single-mode');
+            }
+            
+            currentInputMode = mode;
+        }
 
-    <details>
-      <summary>Paste URL ✨ (New! Auto-fetch from Societas URLs)</summary>
-      <div class="control-row">
-        <input id="url-input" type="url" placeholder="Paste URL here (e.g., https://staging.societas.ms/share/...)" />
-        <button id="btn-fetch-url">Fetch & Parse from URL</button>
-      </div>
-      <div class="hint">✅ Automatically extracts thread ID and fetches data using corsproxy.io proxy</div>
-      <div id="url-status" class="status-message"></div>
-    </details>
-  </section>
+        // 切换输入方法（URL/JSON）
+        function switchInputMethod(method) {
+            currentInputMethod = method;
+            
+            // Only handle single mode switching (batch mode doesn't have method switching)
+            if (currentInputMode === 'single') {
+                document.querySelectorAll('#single-mode .input-method').forEach(el => {
+                    el.classList.remove('active');
+                });
+                document.getElementById(`${method}-method-single`).classList.add('active');
+            }
+        }
 
-  <section id="summary" class="card hidden">
-    <h2>Summary</h2>
-    <div class="summary-grid">
-      <div>
-        <div class="label">First message</div>
-        <div id="first-msg" class="value">-</div>
-      </div>
-      <div>
-        <div class="label">Last message</div>
-        <div id="last-msg" class="value">-</div>
-      </div>
-      <div>
-        <div class="label">Run-sum LLM runtime</div>
-        <div id="run-total" class="value">-</div>
-      </div>
-      <div>
-        <div class="label">Cycle-sum LLM runtime</div>
-        <div id="cycle-total" class="value">-</div>
-      </div>
-    </div>
-  </section>
+        // 添加URL输入框
+        function addUrlInput() {
+            const urlList = document.getElementById('url-list');
+            const currentCount = urlList.children.length + 1;
+            const urlItem = document.createElement('div');
+            urlItem.className = 'url-item';
+            urlItem.innerHTML = `
+                <div class="url-counter">${currentCount}</div>
+                <input type="url" class="batch-url-input" placeholder="粘贴 https://your-server.com/share/... URL">
+                <button class="remove-btn" onclick="removeUrlInput(this)">×</button>
+            `;
+            urlList.appendChild(urlItem);
+            
+            // 添加动画效果
+            urlItem.style.opacity = '0';
+            urlItem.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                urlItem.style.transition = 'all 0.3s ease';
+                urlItem.style.opacity = '1';
+                urlItem.style.transform = 'translateY(0)';
+            }, 10);
+            
+            // 更新所有计数器
+            updateUrlCounters();
+        }
 
-  <section id="runs" class="card hidden">
-    <div class="card-head">
-      <h2>LLM Run Windows (assistant → own tools)</h2>
-      <button id="export-runs">Export CSV</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Run ID</th>
-            <th>Assistant Message ID</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>Duration (s)</th>
-          </tr>
-        </thead>
-        <tbody id="runs-tbody"></tbody>
-      </table>
-    </div>
-  </section>
+        // 移除URL输入框
+        function removeUrlInput(button) {
+            const urlItem = button.parentElement;
+            urlItem.style.transition = 'all 0.3s ease';
+            urlItem.style.opacity = '0';
+            urlItem.style.transform = 'translateX(20px)';
+            
+            setTimeout(() => {
+                urlItem.remove();
+                updateUrlCounters();
+            }, 300);
+        }
 
-  <section id="cycles" class="card hidden">
-    <div class="card-head">
-      <h2>LLM Active Cycles (user-triggered → last non-user before next user)</h2>
-      <button id="export-cycles">Export CSV</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Trigger User Message ID</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>Duration (s)</th>
-          </tr>
-        </thead>
-        <tbody id="cycles-tbody"></tbody>
-      </table>
-    </div>
-  </section>
+        // 更新URL计数器
+        function updateUrlCounters() {
+            const urlItems = document.querySelectorAll('.url-item');
+            urlItems.forEach((item, index) => {
+                const counter = item.querySelector('.url-counter');
+                if (counter) {
+                    counter.textContent = index + 1;
+                }
+            });
+            
+            // 更新URL数量显示
+            updateUrlCountBadge();
+        }
+        
+        // 更新URL数量徽章
+        function updateUrlCountBadge() {
+            const urlItems = document.querySelectorAll('.url-item');
+            const count = urlItems.length;
+            
+            // 在手动添加区域的标题中显示数量
+            const manualHeader = document.querySelector('.manual-add-header h4');
+            if (manualHeader) {
+                // 移除旧的徽章
+                const oldBadge = manualHeader.querySelector('.url-count-badge');
+                if (oldBadge) {
+                    oldBadge.remove();
+                }
+                
+                // 添加新的徽章
+                if (count > 0) {
+                    const badge = document.createElement('span');
+                    badge.className = 'url-count-badge';
+                    badge.textContent = `${count} 个URL`;
+                    manualHeader.appendChild(badge);
+                }
+            }
+        }
+        
+        // 解析批量URL
+        function parseBatchUrls() {
+            const pasteInput = document.getElementById('batch-paste-input');
+            const text = pasteInput.value.trim();
+            
+            if (!text) {
+                showStatus('请先粘贴URL内容', 'error');
+                return;
+            }
+            
+            // 解析URL - 支持多种分隔符
+            const urls = text
+                .split(/[,\n\r\t]+/)
+                .map(url => url.trim())
+                .filter(url => url.length > 0);
+            
+            if (urls.length === 0) {
+                showStatus('未找到有效的URL', 'error');
+                return;
+            }
+            
+            // 验证URL格式
+            const validUrls = [];
+            const invalidUrls = [];
+            
+            urls.forEach(url => {
+                try {
+                    // 如果不是完整的URL，尝试补全
+                    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                        url = 'https://' + url;
+                    }
+                    new URL(url);
+                    validUrls.push(url);
+                } catch (e) {
+                    invalidUrls.push(url);
+                }
+            });
+            
+            // 清空现有的URL列表
+            const urlList = document.getElementById('url-list');
+            urlList.innerHTML = '';
+            
+            // 添加解析出的URL
+            validUrls.forEach((url, index) => {
+                const urlItem = document.createElement('div');
+                urlItem.className = 'url-item';
+                urlItem.innerHTML = `
+                    <div class="url-counter">${index + 1}</div>
+                    <input type="url" class="batch-url-input" value="${url}" placeholder="粘贴 https://your-server.com/share/... URL">
+                    <button class="remove-btn" onclick="removeUrlInput(this)">×</button>
+                `;
+                urlList.appendChild(urlItem);
+            });
+            
+            // 更新计数器
+            updateUrlCounters();
+            
+            // 显示解析结果
+            let message = `成功解析 ${validUrls.length} 个URL`;
+            if (invalidUrls.length > 0) {
+                message += `，${invalidUrls.length} 个无效URL已忽略`;
+            }
+            showStatus(message, 'success');
+            
+            // 清空粘贴区域
+            pasteInput.value = '';
+            
+            // 显示成功提示
+            if (validUrls.length > 0) {
+                setTimeout(() => {
+                    showStatus(`已添加 ${validUrls.length} 个URL到分析列表`, 'success');
+                }, 1000);
+            }
+        }
 
-  <footer>
-    <p>All parsing is done locally in your browser. No data leaves your device.</p>
-    <div style="margin: 15px 0; padding: 15px; background: #e3f2fd; border-radius: 8px;">
-      <p style="margin: 0 0 10px; font-weight: bold; color: #1976d2;">🆕 新功能：AI对话分析工具</p>
-      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-        <p style="margin: 0;">
-          <a href="conversation-view.html" style="color: #1976d2; text-decoration: none; font-weight: 600;">
-            📱 单个对话可视化 →
-          </a>
-          <span style="color: #666; margin-left: 10px;">详细展示单个对话的内容和时间</span>
-        </p>
-        <p style="margin: 0;">
-          <a href="batch-analysis.html" style="color: #1976d2; text-decoration: none; font-weight: 600;">
-            🚀 批量对话分析 →
-          </a>
-          <span style="color: #666; margin-left: 10px;">一次性分析多个对话，快速概览</span>
-        </p>
-      </div>
-    </div>
-    <p>
-      <a href="https://pages.github.com/" target="_blank" rel="noopener">Deploy to GitHub Pages</a>
-    </p>
-  </footer>
+        // 获取批量URL输入
+        function getBatchUrls() {
+            const urlInputs = document.querySelectorAll('.batch-url-input');
+            const urls = [];
+            urlInputs.forEach(input => {
+                const url = input.value.trim();
+                if (url) {
+                    urls.push(url);
+                }
+            });
+            return urls;
+        }
 
-  <script src="app.js"></script>
+        // 获取批量JSON输入
+        function getBatchJsonData() {
+            const jsonText = document.getElementById('batch-json-input').value.trim();
+            if (!jsonText) return [];
+            
+            // 尝试按行分割
+            const lines = jsonText.split('\n').filter(line => line.trim());
+            const jsonData = [];
+            
+            for (const line of lines) {
+                try {
+                    const data = JSON.parse(line.trim());
+                    if (data && Array.isArray(data.data)) {
+                        jsonData.push(data);
+                    }
+                } catch (e) {
+                    // 如果不是JSON，可能是逗号分隔的JSON字符串
+                    try {
+                        const allData = JSON.parse('[' + jsonText + ']');
+                        if (Array.isArray(allData)) {
+                            return allData.filter(item => item && Array.isArray(item.data));
+                        }
+                    } catch (e2) {
+                        console.warn('无法解析JSON行:', line);
+                    }
+                }
+            }
+            
+            return jsonData;
+        }
+
+        // 批量分析主要函数
+        async function analyzeBatchData() {
+            if (isProcessingBatch) {
+                showStatus('正在处理批量分析，请稍候...', 'loading');
+                return;
+            }
+
+            try {
+                isProcessingBatch = true;
+                batchResults = [];
+                
+                // 获取选中的分析类型
+                const batchCheckbox = document.getElementById('include-batch-single');
+                const timeCheckbox = document.getElementById('include-time-single');
+                const vizCheckbox = document.getElementById('include-viz-single');
+                
+                console.log('复选框元素查找结果:', {
+                    batchCheckbox: !!batchCheckbox,
+                    timeCheckbox: !!timeCheckbox,
+                    vizCheckbox: !!vizCheckbox
+                });
+                
+                const includeBatch = batchCheckbox ? batchCheckbox.checked : false;
+                const includeTime = timeCheckbox ? timeCheckbox.checked : false;
+                const includeViz = vizCheckbox ? vizCheckbox.checked : false;
+                
+                console.log('分析类型选择状态:', { includeBatch, includeTime, includeViz });
+                
+                if (!includeBatch && !includeTime && !includeViz) {
+                    showStatus('请至少选择一种分析类型', 'error');
+                    return;
+                }
+
+                // 获取数据源
+                const urls = getBatchUrls();
+                const jsonData = getBatchJsonData();
+                
+                if (urls.length === 0 && jsonData.length === 0) {
+                    showStatus('请输入至少一个URL或JSON数据', 'error');
+                    return;
+                }
+
+                // 验证URL格式
+                for (const url of urls) {
+                    try {
+                        new URL(url);
+                    } catch (e) {
+                        showStatus(`无效的URL格式: ${url}`, 'error');
+                        return;
+                    }
+                }
+
+                // 显示批量分析结果区域
+                document.getElementById('batch-results-section').classList.remove('hidden');
+                document.getElementById('single-results-section').classList.add('hidden');
+                
+                // 清空之前的结果
+                document.getElementById('batch-items-container').innerHTML = '';
+
+                // 合并所有数据源
+                const allData = [];
+                urls.forEach(url => allData.push({ type: 'url', data: url }));
+                jsonData.forEach(data => allData.push({ type: 'json', data: data }));
+
+                // 显示批量分析进度
+                showBatchProgress();
+                
+                // 处理每个数据源
+                let successCount = 0;
+                let errorCount = 0;
+                
+                for (let i = 0; i < allData.length; i++) {
+                    const item = allData[i];
+                    try {
+                        await processBatchItem(item, i + 1, allData.length, includeBatch, includeTime, includeViz);
+                        successCount++;
+                    } catch (itemError) {
+                        console.error(`处理数据源 ${i + 1} 失败:`, itemError);
+                        errorCount++;
+                        // 更新该项目的状态为错误
+                        updateBatchItemStatus(i + 1, '错误', itemError.message);
+                    }
+                    
+                    // 更新进度
+                    updateBatchProgress(i + 1, allData.length, successCount, errorCount);
+                }
+
+                // 显示批量汇总
+                showBatchSummary();
+                
+                if (errorCount === 0) {
+                    showStatus(`批量分析完成！成功处理了 ${allData.length} 个数据源`, 'success');
+                } else {
+                    showStatus(`批量分析完成！处理了 ${allData.length} 个数据源，成功 ${successCount} 个，失败 ${errorCount} 个`, 'warning');
+                }
+
+            } catch (error) {
+                console.error('批量分析失败:', error);
+                showStatus(`批量分析失败: ${error.message}`, 'error');
+            } finally {
+                isProcessingBatch = false;
+            }
+        }
+
+        // 处理单个批量项目
+        async function processBatchItem(item, index, total, includeBatch, includeTime, includeViz) {
+            const resultId = `batch-item-${index}`;
+            let result = {
+                id: resultId,
+                index: index,
+                source: item.type === 'url' ? item.data : 'JSON数据',
+                status: 'processing',
+                data: null,
+                error: null,
+                analysis: {}
+            };
+
+            // 创建结果项
+            createBatchResultItem(result);
+            updateBatchItemStatus(result.index, '处理中');
+
+            try {
+                console.log('处理批量项目:', item);
+                
+                // 获取数据
+                let data;
+                if (item.type === 'url') {
+                    console.log('从URL获取数据:', item.data);
+                    data = await fetchSingleUrl(item.data);
+                } else {
+                    console.log('使用JSON数据:', item.data);
+                    data = item.data;
+                }
+
+                console.log('获取到的数据:', data);
+                
+                // 验证数据
+                if (!data || !Array.isArray(data.data)) {
+                    console.error('数据格式错误，期望 { data: [...] }，实际:', data);
+                    throw new Error('数据格式错误：期望 { data: [...] }');
+                }
+
+                result.data = data;
+                result.status = 'success';
+
+                // 执行分析
+                if (includeBatch) {
+                    result.analysis.batch = analyzeBatchContent(data);
+                }
+                if (includeTime) {
+                    result.analysis.time = analyzeTimeContent(data);
+                }
+                if (includeViz) {
+                    result.analysis.viz = analyzeVizContent(data);
+                }
+
+                batchResults.push(result);
+                updateBatchItemContent(result);
+                updateBatchItemStatus(result.index, '完成');
+
+            } catch (error) {
+                result.status = 'error';
+                result.error = error.message;
+                batchResults.push(result);
+                updateBatchItemStatus(result.index, '错误', error.message);
+            }
+        }
+
+        // 从URL中提取服务器地址
+        function extractServerUrl(url) {
+            try {
+                const urlObj = new URL(url);
+                return `${urlObj.protocol}//${urlObj.hostname}`;
+            } catch (error) {
+                console.error('无法解析URL:', url, error);
+                return 'https://staging.societas.ms'; // 默认值
+            }
+        }
+
+        // 获取单个URL数据
+        async function fetchSingleUrl(url) {
+            console.log('fetchSingleUrl called with:', url);
+            
+            if (url.includes('/share/')) {
+                const threadId = url.split('/share/')[1];
+                if (threadId) {
+                    const serverUrl = extractServerUrl(url);
+                    const proxyUrl = `https://corsproxy.io/?${serverUrl}/api/message/list`;
+                    console.log('使用动态服务器地址:', serverUrl);
+                    console.log('提取的threadId:', threadId);
+                    const response = await fetch(proxyUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ thread_id: threadId })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    console.log('API返回数据结构:', data);
+                    if (!data || !Array.isArray(data.data)) {
+                        throw new Error('数据格式错误');
+                    }
+                    return data;
+                }
+            }
+
+            console.log('直接获取URL数据:', url);
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('直接获取的数据结构:', data);
+            return data;
+        }
+
+        // 创建批量结果项
+        function createBatchResultItem(result) {
+            const container = document.getElementById('batch-items-container');
+            const sourceIcon = result.source.includes('http') ? '🔗' : '📄';
+            const itemHtml = `
+                <div class="batch-item" id="${result.id}">
+                    <div class="batch-item-header">
+                        <span class="batch-item-title">
+                            <span class="batch-item-icon">${sourceIcon}</span>
+                            <a href="#" class="source-title" data-url="${result.source}" target="_blank" rel="noopener noreferrer">数据源 ${result.index}</a>
+                        </span>
+                        <span class="batch-item-status batch-status processing" id="batch-status-${result.index}">处理中</span>
+                        <span class="batch-progress" id="batch-progress-${result.index}"></span>
+                    </div>
+                    <div class="batch-item-content">
+                        <!-- 关键信息概览 -->
+                        <div class="key-info-overview" id="${result.id}-key-info">
+                            <div class="loading-placeholder">
+                                <div class="loading-spinner"></div>
+                                正在提取关键信息...
+                            </div>
+                        </div>
+                        
+                        <div class="batch-item-tabs">
+                            <button class="batch-item-tab active" onclick="switchBatchItemTab('${result.id}', 'batch')">
+                                📊 批量分析
+                            </button>
+                            <button class="batch-item-tab" onclick="switchBatchItemTab('${result.id}', 'time')">
+                                ⏱️ 时间分析
+                            </button>
+                            <button class="batch-item-tab" onclick="switchBatchItemTab('${result.id}', 'viz')">
+                                💬 对话可视化
+                            </button>
+                        </div>
+                        <div class="batch-item-tab-content active" id="${result.id}-batch-content">
+                            <div class="loading-placeholder">
+                                <div class="loading-spinner"></div>
+                                正在分析批量内容...
+                            </div>
+                        </div>
+                        <div class="batch-item-tab-content" id="${result.id}-time-content">
+                            <div class="loading-placeholder">
+                                <div class="loading-spinner"></div>
+                                正在分析时间数据...
+                            </div>
+                        </div>
+                        <div class="batch-item-tab-content" id="${result.id}-viz-content">
+                            <div class="loading-placeholder">
+                                <div class="loading-spinner"></div>
+                                正在生成对话可视化...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', itemHtml);
+        }
+
+  
+        // 更新批量项内容
+        function updateBatchItemContent(result) {
+            // 更新关键信息概览
+            updateKeyInfoOverview(result);
+            
+            // 更新各个标签页内容
+            if (result.analysis.batch) {
+                document.getElementById(`${result.id}-batch-content`).innerHTML = result.analysis.batch;
+            }
+            if (result.analysis.time) {
+                document.getElementById(`${result.id}-time-content`).innerHTML = result.analysis.time;
+            }
+            if (result.analysis.viz) {
+                document.getElementById(`${result.id}-viz-content`).innerHTML = result.analysis.viz;
+            }
+        }
+        
+        // 更新关键信息概览
+        function updateKeyInfoOverview(result) {
+            const keyInfoElement = document.getElementById(`${result.id}-key-info`);
+            if (!keyInfoElement || !result.data || !Array.isArray(result.data.data)) {
+                return;
+            }
+            
+            const messages = result.data.data;
+            const userMessages = messages.filter(m => m.type === 'user');
+            const assistantMessages = messages.filter(m => m.type === 'assistant');
+            const toolMessages = messages.filter(m => m.type === 'tool');
+            
+            // 提取用户Prompt
+            let userPrompt = '无用户消息';
+            if (userMessages.length > 0) {
+                const firstUserMessage = userMessages[0];
+                console.log('用户消息结构:', firstUserMessage);
+                console.log('用户消息content:', firstUserMessage.content);
+                console.log('用户消息content类型:', typeof firstUserMessage.content);
+                
+                userPrompt = extractCleanPrompt(firstUserMessage.content || '');
+                console.log('提取后的Prompt:', userPrompt);
+                
+                // 限制长度
+                if (userPrompt.length > 100) {
+                    userPrompt = userPrompt.substring(0, 100) + '...';
+                }
+            }
+            
+            // 更新标题为Prompt并设置为超链接
+            const titleElement = document.querySelector(`#${result.id} .source-title`);
+            if (titleElement) {
+                titleElement.textContent = userPrompt;
+                // 如果是URL类型，设置href属性
+                if (result.source && result.source.includes('http')) {
+                    titleElement.href = result.source;
+                } else {
+                    // 如果不是URL，移除href属性使其不可点击
+                    titleElement.removeAttribute('href');
+                    titleElement.style.cursor = 'default';
+                    titleElement.style.textDecoration = 'none';
+                }
+            }
+            
+            // 计算时间统计
+            const parsedMessages = messages.map(msg => ({
+                ...msg,
+                parsedDate: parseIso(msg.created_at)
+            })).sort((a, b) => a.parsedDate - b.parsedDate);
+            
+            const runs = computeRuns(parsedMessages);
+            const cycles = computeCycles(parsedMessages);
+            const runSum = summarizeWindows(runs);
+            
+            // 生成关键信息HTML
+            const keyInfoHtml = `
+                <div class="key-info-header">
+                    <div class="key-info-icon">💬</div>
+                    <div class="key-info-title-area">
+                        <div class="key-info-title">${userPrompt}</div>
+                    </div>
+                </div>
+                
+                <div class="key-stats-grid">
+                    <div class="key-stat-item key-stat-highlight">
+                        <div class="key-stat-value">${messages.length}</div>
+                        <div class="key-stat-label">总消息数</div>
+                    </div>
+                    <div class="key-stat-item">
+                        <div class="key-stat-value">${userMessages.length}</div>
+                        <div class="key-stat-label">用户消息</div>
+                    </div>
+                    <div class="key-stat-item">
+                        <div class="key-stat-value">${assistantMessages.length}</div>
+                        <div class="key-stat-label">助手消息</div>
+                    </div>
+                    <div class="key-stat-item key-stat-highlight">
+                        <div class="key-stat-value">${runSum.total.toFixed(1)}s</div>
+                        <div class="key-stat-label">LLM运行时间</div>
+                    </div>
+                    <div class="key-stat-item">
+                        <div class="key-stat-value">${cycles.length}</div>
+                        <div class="key-stat-label">活跃周期</div>
+                    </div>
+                    <div class="key-stat-item">
+                        <div class="key-stat-value">${toolMessages.length}</div>
+                        <div class="key-stat-label">工具消息</div>
+                    </div>
+                </div>
+            `;
+            
+            keyInfoElement.innerHTML = keyInfoHtml;
+        }
+
+        // 切换批量项标签页
+        function switchBatchItemTab(itemId, tab) {
+            const item = document.getElementById(itemId);
+            if (!item) return;
+
+            // 切换标签页状态
+            item.querySelectorAll('.batch-item-tab').forEach(t => t.classList.remove('active'));
+            item.querySelectorAll('.batch-item-tab-content').forEach(c => c.classList.remove('active'));
+            
+            item.querySelector(`[onclick="switchBatchItemTab('${itemId}', '${tab}')"]`).classList.add('active');
+            document.getElementById(`${itemId}-${tab}-content`).classList.add('active');
+        }
+
+        // 显示批量进度
+        function showBatchProgress() {
+            const summaryHtml = `
+                <div class="summary-stats">
+                    <div class="summary-stat">
+                        <div class="summary-stat-value" id="batch-total">0</div>
+                        <div class="summary-stat-label">总数据源</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value" id="batch-completed">0</div>
+                        <div class="summary-stat-label">已完成</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value" id="batch-success">0</div>
+                        <div class="summary-stat-label">成功</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value" id="batch-error">0</div>
+                        <div class="summary-stat-label">失败</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('batch-summary').innerHTML = summaryHtml;
+        }
+
+        // 显示批量汇总
+        function showBatchSummary() {
+            const total = batchResults.length;
+            const success = batchResults.filter(r => r.status === 'success').length;
+            const error = batchResults.filter(r => r.status === 'error').length;
+
+            document.getElementById('batch-total').textContent = total;
+            document.getElementById('batch-completed').textContent = total;
+            document.getElementById('batch-success').textContent = success;
+            document.getElementById('batch-error').textContent = error;
+        }
+        
+        // 更新批量进度
+        function updateBatchProgress(current, total, success, error) {
+            document.getElementById('batch-total').textContent = total;
+            document.getElementById('batch-completed').textContent = current;
+            document.getElementById('batch-success').textContent = success;
+            document.getElementById('batch-error').textContent = error;
+        }
+
+        // 分析批量内容
+        function analyzeBatchContent(data) {
+            const messages = data.data;
+            const userMessages = messages.filter(m => m.type === 'user');
+            
+            let html = '<div class="batch-analysis-content">';
+            
+            userMessages.forEach((msg, index) => {
+                const content = msg.content || '';
+                const cleanContent = extractCleanPrompt(content);
+                
+                html += `
+                    <div class="initial-prompt">
+                        <div class="prompt-label">💬 用户初始提示 ${index + 1}</div>
+                        <div class="prompt-text">${cleanContent}</div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            return html;
+        }
+
+        // 分析时间内容
+        function analyzeTimeContent(data) {
+            const messages = data.data.map(msg => ({
+                ...msg,
+                parsedDate: parseIso(msg.created_at)
+            })).sort((a, b) => a.parsedDate - b.parsedDate);
+
+            const runs = computeRuns(messages);
+            const cycles = computeCycles(messages);
+            const runSum = summarizeWindows(runs);
+            const cycleSum = summarizeWindows(cycles);
+
+            let html = `
+                <div class="batch-time-summary">
+                    <div class="batch-time-stat">
+                        <div class="batch-time-stat-value">${messages.length}</div>
+                        <div class="batch-time-stat-label">总消息数</div>
+                    </div>
+                    <div class="batch-time-stat">
+                        <div class="batch-time-stat-value">${runSum.total.toFixed(3)}s</div>
+                        <div class="batch-time-stat-label">LLM运行时间</div>
+                    </div>
+                    <div class="batch-time-stat">
+                        <div class="batch-time-stat-value">${cycles.length}</div>
+                        <div class="batch-time-stat-label">活跃周期</div>
+                    </div>
+                </div>
+            `;
+
+            if (runs.length > 0) {
+                html += `
+                    <table class="batch-table">
+                        <thead>
+                            <tr>
+                                <th>运行ID</th>
+                                <th>持续时间(秒)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                runs.forEach(run => {
+                    html += `
+                        <tr>
+                            <td>${run.run_id || '-'}</td>
+                            <td>${run.duration_seconds.toFixed(3)}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            return html;
+        }
+
+        // 分析可视化内容
+        function analyzeVizContent(data) {
+            const messages = data.data.map(msg => ({
+                ...msg,
+                parsedDate: parseIso(msg.created_at)
+            })).sort((a, b) => a.parsedDate - b.parsedDate);
+
+            let html = '<div class="batch-viz-messages">';
+            
+            // 只显示前10条消息以避免过长
+            const displayMessages = messages.slice(0, 10);
+            
+            displayMessages.forEach(msg => {
+                const content = msg.content || '';
+                const cleanContent = extractCleanPrompt(content);
+                
+                html += `
+                    <div class="batch-viz-message ${msg.type}">
+                        <div class="batch-viz-message-header">
+                            <span class="batch-viz-message-type ${msg.type}">${getTypeLabel(msg.type)}</span>
+                            <span class="batch-viz-message-time">${formatDate(msg.parsedDate, currentTimezone)}</span>
+                        </div>
+                        <div class="batch-viz-message-content">
+                            ${cleanContent.length > 100 ? cleanContent.substring(0, 100) + '...' : cleanContent}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (messages.length > 10) {
+                html += `<div style="text-align: center; color: #6c757d; font-size: 12px;">还有 ${messages.length - 10} 条消息...</div>`;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        // 清空批量结果
+        function clearBatchResults() {
+            batchResults = [];
+            document.getElementById('batch-items-container').innerHTML = '';
+            document.getElementById('batch-summary').innerHTML = '';
+            document.getElementById('batch-results-section').classList.add('hidden');
+            showStatus('批量结果已清空', 'success');
+        }
+
+        // 导出所有批量结果
+        function exportAllBatchResults() {
+            if (batchResults.length === 0) {
+                showStatus('没有可导出的结果', 'error');
+                return;
+            }
+
+            let csv = '数据源,状态,消息数,用户消息数,助手消息数,工具消息数,LLM运行总时间,活跃周期数\n';
+            
+            batchResults.forEach(result => {
+                if (result.status === 'success' && result.data) {
+                    const messages = result.data.data;
+                    const userMessages = messages.filter(m => m.type === 'user');
+                    const assistantMessages = messages.filter(m => m.type === 'assistant');
+                    const toolMessages = messages.filter(m => m.type === 'tool');
+                    
+                    // 计算时间统计
+                    const parsedMessages = messages.map(msg => ({
+                        ...msg,
+                        parsedDate: parseIso(msg.created_at)
+                    })).sort((a, b) => a.parsedDate - b.parsedDate);
+                    
+                    const runs = computeRuns(parsedMessages);
+                    const cycles = computeCycles(parsedMessages);
+                    const runSum = summarizeWindows(runs);
+                    
+                    csv += `"${result.source}",成功,${messages.length},${userMessages.length},${assistantMessages.length},${toolMessages.length},${runSum.total.toFixed(3)}s,${cycles.length}\n`;
+                } else {
+                    csv += `"${result.source}",失败,0,0,0,0,0s,0\n`;
+                }
+            });
+            
+            download('batch-analysis-results.csv', csv);
+            showStatus('批量结果已导出', 'success');
+        }
+
+        // 显示状态消息
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status-message ${type}`;
+        }
+
+        // 更新批量项目状态
+        function updateBatchItemStatus(index, status, message = '') {
+            const statusEl = document.getElementById(`batch-status-${index}`);
+            if (statusEl) {
+                statusEl.textContent = status;
+                statusEl.className = `batch-item-status batch-status ${status.toLowerCase().replace(' ', '-')}`;
+            }
+            
+            const progressEl = document.getElementById(`batch-progress-${index}`);
+            if (progressEl) {
+                progressEl.textContent = message;
+            }
+        }
+
+        // 解析ISO时间
+        function parseIso(ts) {
+            ts = ts.replace('Z', '+00:00');
+            const tIndex = ts.indexOf('T');
+            const posPlus = ts.lastIndexOf('+');
+            const posMinus = ts.lastIndexOf('-');
+            const tzPos = Math.max(posPlus, posMinus);
+            const hasTz = tzPos !== -1 && tzPos > tIndex;
+            const main = hasTz ? ts.slice(0, tzPos) : ts;
+            const tz = hasTz ? ts.slice(tzPos) : '';
+            const dot = main.indexOf('.');
+            let norm;
+            if (dot !== -1) {
+                const secs = main.slice(0, dot);
+                let frac = main.slice(dot + 1);
+                frac = (frac + '000000').slice(0, 6);
+                norm = `${secs}.${frac}${tz}`;
+            } else {
+                norm = `${main}${tz}`;
+            }
+            return new Date(norm);
+        }
+
+        // 格式化日期
+        function formatDate(date, timezone) {
+            if (!date) return '-';
+            try {
+                return new Intl.DateTimeFormat('zh-CN', {
+                    timeZone: timezone,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                }).format(date);
+            } catch (e) {
+                return date.toISOString();
+            }
+        }
+
+        // 安全解析JSON
+        function safeJsonParse(str) {
+            try {
+                return JSON.parse(str);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // 获取数据
+        async function fetchData() {
+            const url = document.getElementById('url-input').value.trim();
+            if (!url) {
+                throw new Error('请输入URL');
+            }
+
+            showStatus('正在获取数据...', 'loading');
+
+            try {
+                // 如果是分享URL，尝试提取thread ID
+                if (url.includes('/share/')) {
+                    const threadId = url.split('/share/')[1];
+                    if (threadId) {
+                        const serverUrl = extractServerUrl(url);
+                        // 使用代理服务
+                        const proxyUrl = `https://corsproxy.io/?${serverUrl}/api/message/list`;
+                        console.log('使用动态服务器地址:', serverUrl);
+                        const response = await fetch(proxyUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ thread_id: threadId })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+
+                        const data = await response.json();
+                        if (!data || !Array.isArray(data.data)) {
+                            throw new Error('数据格式错误');
+                        }
+
+                        showStatus('数据获取成功！', 'success');
+                        return data;
+                    }
+                }
+
+                // 直接获取其他URL
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                showStatus('数据获取成功！', 'success');
+                return data;
+
+            } catch (error) {
+                showStatus(`获取数据失败: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        // 计算LLM运行时间
+        function computeRuns(messages) {
+            const runs = [];
+            for (let i = 0; i < messages.length; i += 1) {
+                const m = messages[i];
+                if (m.type === 'assistant') {
+                    const start = parseIso(m.created_at);
+                    let end = start;
+                    let j = i + 1;
+                    while (j < messages.length) {
+                        const n = messages[j];
+                        if (n.type === 'assistant' || n.type === 'user') break;
+                        if (n.type === 'tool') {
+                            const meta = typeof n.metadata === 'string' ? safeJsonParse(n.metadata) : (n.metadata || {});
+                            if (meta && meta.assistant_message_id === m.message_id) {
+                                end = parseIso(n.created_at);
+                            }
+                        }
+                        j += 1;
+                    }
+                    runs.push({
+                        run_id: (typeof m.metadata === 'string' ? safeJsonParse(m.metadata)?.thread_run_id : m.metadata?.thread_run_id) || null,
+                        assistant_message_id: m.message_id,
+                        start: start,
+                        end: end,
+                        duration_seconds: Math.max(0, (end - start) / 1000),
+                    });
+                    i = j - 1;
+                }
+            }
+            return runs;
+        }
+
+        // 计算活跃周期
+        function computeCycles(messages) {
+            const cycles = [];
+            let currentUser = null;
+            let lastNonUser = null;
+            for (const m of messages) {
+                if (m.type === 'user') {
+                    if (currentUser && lastNonUser && lastNonUser >= parseIso(currentUser.created_at)) {
+                        const start = parseIso(currentUser.created_at);
+                        cycles.push({
+                            trigger_user_message_id: currentUser.message_id,
+                            start,
+                            end: lastNonUser,
+                            duration_seconds: (lastNonUser - start) / 1000,
+                        });
+                    }
+                    currentUser = m;
+                    lastNonUser = null;
+                } else if (currentUser) {
+                    lastNonUser = parseIso(m.created_at);
+                }
+            }
+            if (currentUser && lastNonUser && lastNonUser >= parseIso(currentUser.created_at)) {
+                const start = parseIso(currentUser.created_at);
+                cycles.push({
+                    trigger_user_message_id: currentUser.message_id,
+                    start,
+                    end: lastNonUser,
+                    duration_seconds: (lastNonUser - start) / 1000,
+                });
+            }
+            return cycles;
+        }
+
+        // 汇总时间窗口
+        function summarizeWindows(windows) {
+            if (!windows.length) return { total: 0, start: null, end: null };
+            const total = windows.reduce((s, w) => s + w.duration_seconds, 0);
+            const start = new Date(Math.min(...windows.map(w => w.start.getTime())));
+            const end = new Date(Math.max(...windows.map(w => w.end.getTime())));
+            return { total, start, end };
+        }
+
+        // 生成CSV
+        function toCsv(rows, headers) {
+            const esc = v => {
+                const s = String(v ?? '');
+                if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+                return s;
+            };
+            const head = headers.map(h => esc(h.label)).join(',');
+            const body = rows.map(r => headers.map(h => esc(h.get(r))).join(',')).join('\n');
+            return head + '\n' + body + '\n';
+        }
+
+        // 下载文件
+        function download(filename, text) {
+            const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 显示批量分析结果
+        function displayBatchResults(data) {
+            const messages = data.data;
+            const userMessages = messages.filter(m => m.type === 'user');
+            
+            let html = '<div class="batch-results">';
+            
+            userMessages.forEach((msg, index) => {
+                const content = msg.content || '';
+                const cleanContent = extractCleanPrompt(content);
+                
+                html += `
+                    <div class="conversation-item">
+                        <div class="conversation-header">
+                            <span class="conversation-title">对话 ${index + 1}</span>
+                            <div class="conversation-stats">
+                                <span>消息ID: ${msg.message_id}</span>
+                                <span>时间: ${formatDate(parseIso(msg.created_at), currentTimezone)}</span>
+                            </div>
+                        </div>
+                        <div class="initial-prompt">
+                            <div class="prompt-label">💬 用户初始提示</div>
+                            <div class="prompt-text">${cleanContent}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            document.getElementById('batch-content').innerHTML = html;
+            document.getElementById('batch-results').classList.remove('hidden');
+        }
+
+        // 提取干净的Prompt文本
+        function extractCleanPrompt(content) {
+            console.log('extractCleanPrompt 输入:', content);
+            console.log('extractCleanPrompt 输入类型:', typeof content);
+            
+            if (!content) return '无内容';
+            
+            let text = '';
+            if (typeof content === 'string') {
+                text = content;
+                console.log('原始文本:', text);
+                
+                // 尝试解析JSON字符串，提取content字段
+                try {
+                    const parsed = JSON.parse(text);
+                    console.log('JSON解析结果:', parsed);
+                    if (parsed && parsed.content) {
+                        text = parsed.content;
+                        console.log('提取content字段后:', text);
+                    }
+                } catch (e) {
+                    console.log('JSON解析失败:', e.message);
+                    // 不是JSON，继续处理原始文本
+                }
+                
+                // 如果仍然是JSON格式（如{"role": "user", "content": "..."}），尝试提取content
+                if (text.includes('"content"')) {
+                    try {
+                        // 使用正则表达式提取content字段的值
+                        const contentMatch = text.match(/"content"\s*:\s*"([^"]+)"/);
+                        console.log('正则匹配结果:', contentMatch);
+                        if (contentMatch) {
+                            text = contentMatch[1];
+                            console.log('正则提取后:', text);
+                        }
+                    } catch (e) {
+                        console.log('正则提取失败:', e);
+                        // 提取失败，使用原始文本
+                    }
+                }
+                
+                // 处理转义的JSON字符串
+                if (text.includes('\\"') && text.includes('"content\\"')) {
+                    try {
+                        // 处理转义字符
+                        const unescapedText = text.replace(/\\"/g, '"');
+                        const escapedMatch = unescapedText.match(/"content"\s*:\s*"([^"]+)"/);
+                        console.log('转义处理匹配结果:', escapedMatch);
+                        if (escapedMatch) {
+                            text = escapedMatch[1];
+                            console.log('转义处理后:', text);
+                        }
+                    } catch (e) {
+                        console.log('转义处理失败:', e);
+                    }
+                }
+            } else if (Array.isArray(content)) {
+                text = content.map(item => {
+                    if (typeof item === 'string') return item;
+                    if (item.type === 'text') return item.text;
+                    return '';
+                }).join('');
+            } else {
+                text = String(content);
+            }
+            
+            // 清理JSON格式的元数据
+            text = text.replace(/\n\n\[\"[^"]+\"(?:,\s*\"[^"]+\")*\]\s*$/g, '');
+            text = text.replace(/^\[\"[^"]+\"(?:,\s*\"[^"]+\")*\]\s*\n\n/g, '');
+            text = text.replace(/\n\n\[[^\]]+\]\s*$/g, '');
+            text = text.replace(/\n{3,}/g, '\n\n');
+            text = text.trim();
+            
+            console.log('最终结果:', text);
+            return text || '无有效内容';
+        }
+
+        // 显示时间分析结果
+        function displayTimeResults(data) {
+            const messages = data.data.map(msg => ({
+                ...msg,
+                parsedDate: parseIso(msg.created_at)
+            })).sort((a, b) => a.parsedDate - b.parsedDate);
+
+            const runs = computeRuns(messages);
+            const cycles = computeCycles(messages);
+            const first = messages[0].parsedDate;
+            const last = messages[messages.length - 1].parsedDate;
+            const runSum = summarizeWindows(runs);
+            const cycleSum = summarizeWindows(cycles);
+
+            let html = `
+                <div class="time-summary">
+                    <div class="summary-item">
+                        <div class="summary-value">${messages.length}</div>
+                        <div class="summary-label">总消息数</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">${runSum.total.toFixed(3)}s</div>
+                        <div class="summary-label">LLM运行总时间</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">${cycleSum.total.toFixed(3)}s</div>
+                        <div class="summary-label">活跃周期总时间</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">${runs.length}</div>
+                        <div class="summary-label">LLM运行次数</div>
+                    </div>
+                </div>
+            `;
+
+            // 运行时间表格
+            if (runs.length > 0) {
+                html += `
+                    <h3>LLM运行窗口</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>运行ID</th>
+                                    <th>助手消息ID</th>
+                                    <th>开始</th>
+                                    <th>结束</th>
+                                    <th>持续时间(秒)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                runs.forEach((run, i) => {
+                    html += `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${run.run_id || '-'}</td>
+                            <td>${run.assistant_message_id}</td>
+                            <td>${formatDate(run.start, currentTimezone)}</td>
+                            <td>${formatDate(run.end, currentTimezone)}</td>
+                            <td>${run.duration_seconds.toFixed(3)}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            // 活跃周期表格
+            if (cycles.length > 0) {
+                html += `
+                    <h3>LLM活跃周期</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>触发用户消息ID</th>
+                                    <th>开始</th>
+                                    <th>结束</th>
+                                    <th>持续时间(秒)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                cycles.forEach((cycle, i) => {
+                    html += `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${cycle.trigger_user_message_id}</td>
+                            <td>${formatDate(cycle.start, currentTimezone)}</td>
+                            <td>${formatDate(cycle.end, currentTimezone)}</td>
+                            <td>${cycle.duration_seconds.toFixed(3)}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            console.log('正在更新时间分析结果...');
+            console.log('生成的时间分析HTML长度:', html.length);
+            const timeContent = document.getElementById('time-content');
+            const timeResults = document.getElementById('time-results');
+            
+            console.log('时间分析DOM元素查找结果:', {
+                timeContent: !!timeContent,
+                timeResults: !!timeResults,
+                timeContentId: timeContent ? timeContent.id : 'not found',
+                timeResultsId: timeResults ? timeResults.id : 'not found'
+            });
+            
+            if (timeContent && timeResults) {
+                console.log('设置时间分析innerHTML...');
+                timeContent.innerHTML = html;
+                console.log('移除时间分析hidden类...');
+                timeResults.classList.remove('hidden');
+                console.log('时间分析结果已显示');
+            } else {
+                console.error('时间分析结果元素未找到:', {
+                    timeContent: !!timeContent,
+                    timeResults: !!timeResults,
+                    allElements: document.querySelectorAll('[id*="time"]').length
+                });
+            }
+        }
+
+        // 显示对话可视化结果
+        function displayVizResults(data) {
+            const messages = data.data.map(msg => ({
+                ...msg,
+                parsedDate: parseIso(msg.created_at)
+            })).sort((a, b) => a.parsedDate - b.parsedDate);
+
+            const userMessages = messages.filter(m => m.type === 'user');
+            const assistantMessages = messages.filter(m => m.type === 'assistant');
+            const toolMessages = messages.filter(m => m.type === 'tool');
+
+            // 统计信息
+            const statsHtml = `
+                <div class="viz-stats">
+                    <div class="viz-stat">
+                        <div class="viz-stat-value">${messages.length}</div>
+                        <div class="viz-stat-label">总消息数</div>
+                    </div>
+                    <div class="viz-stat">
+                        <div class="viz-stat-value">${userMessages.length}</div>
+                        <div class="viz-stat-label">用户消息</div>
+                    </div>
+                    <div class="viz-stat">
+                        <div class="viz-stat-value">${assistantMessages.length}</div>
+                        <div class="viz-stat-label">助手消息</div>
+                    </div>
+                    <div class="viz-stat">
+                        <div class="viz-stat-value">${toolMessages.length}</div>
+                        <div class="viz-stat-label">工具消息</div>
+                    </div>
+                </div>
+            `;
+
+            // 消息筛选器
+            const filterHtml = `
+                <div class="message-filter">
+                    <div class="filter-title">筛选消息类型:</div>
+                    <div class="filter-options">
+                        <div class="filter-option">
+                            <input type="checkbox" id="filter-user" checked onchange="filterMessages()">
+                            <label for="filter-user">用户消息 (${userMessages.length})</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="filter-assistant" checked onchange="filterMessages()">
+                            <label for="filter-assistant">助手消息 (${assistantMessages.length})</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="filter-tool" checked onchange="filterMessages()">
+                            <label for="filter-tool">工具消息 (${toolMessages.length})</label>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 对话时间线
+            let timelineHtml = '<div class="conversation-viz" id="conversation-timeline">';
+            
+            messages.forEach((msg, index) => {
+                const content = msg.content || '';
+                const cleanContent = extractCleanPrompt(content);
+                const messageId = `msg-${index}`;
+                
+                timelineHtml += `
+                    <div class="message ${msg.type}" data-type="${msg.type}" id="${messageId}">
+                        <div class="message-header">
+                            <span class="message-type ${msg.type}">${getTypeLabel(msg.type)}</span>
+                            <span class="message-time">${formatDate(msg.parsedDate, currentTimezone)}</span>
+                            <button class="metadata-toggle" onclick="toggleMetadata('${messageId}')">查看元数据</button>
+                        </div>
+                        <div class="message-content">
+                            ${cleanContent}
+                        </div>
+                        <div class="message-metadata" id="${messageId}-metadata">
+                            <div class="metadata-item">
+                                <span class="metadata-label">消息ID:</span>
+                                <span class="metadata-value">${msg.message_id || '无'}</span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="metadata-label">线程ID:</span>
+                                <span class="metadata-value">${msg.thread_id || '无'}</span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="metadata-label">创建时间:</span>
+                                <span class="metadata-value">${msg.created_at}</span>
+                            </div>
+                            ${msg.metadata ? `
+                            <div class="metadata-item">
+                                <span class="metadata-label">元数据:</span>
+                                <span class="metadata-value">${JSON.stringify(msg.metadata, null, 2)}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            timelineHtml += '</div>';
+
+            console.log('正在更新对话可视化结果...');
+            console.log('生成的HTML长度:', statsHtml.length + filterHtml.length + timelineHtml.length);
+            const vizContent = document.getElementById('viz-content');
+            const vizResults = document.getElementById('viz-results');
+            
+            console.log('DOM元素查找结果:', {
+                vizContent: !!vizContent,
+                vizResults: !!vizResults,
+                vizContentId: vizContent ? vizContent.id : 'not found',
+                vizResultsId: vizResults ? vizResults.id : 'not found'
+            });
+            
+            if (vizContent && vizResults) {
+                console.log('设置innerHTML...');
+                vizContent.innerHTML = statsHtml + filterHtml + timelineHtml;
+                console.log('移除hidden类...');
+                vizResults.classList.remove('hidden');
+                
+                // 存储消息数据供筛选使用
+                window.currentVizMessages = messages;
+                console.log('对话可视化结果已显示');
+            } else {
+                console.error('对话可视化结果元素未找到:', {
+                    vizContent: !!vizContent,
+                    vizResults: !!vizResults,
+                    allElements: document.querySelectorAll('[id*="viz"]').length
+                });
+            }
+        }
+
+        // 切换metadata显示
+        function toggleMetadata(messageId) {
+            const metadata = document.getElementById(`${messageId}-metadata`);
+            const toggle = document.querySelector(`#${messageId} .metadata-toggle`);
+            
+            if (metadata.classList.contains('show')) {
+                metadata.classList.remove('show');
+                toggle.textContent = '查看元数据';
+                toggle.classList.remove('expanded');
+            } else {
+                metadata.classList.add('show');
+                toggle.textContent = '隐藏元数据';
+                toggle.classList.add('expanded');
+            }
+        }
+
+        // 筛选消息
+        function filterMessages() {
+            const showUser = document.getElementById('filter-user').checked;
+            const showAssistant = document.getElementById('filter-assistant').checked;
+            const showTool = document.getElementById('filter-tool').checked;
+            
+            const messages = document.querySelectorAll('#conversation-timeline .message');
+            
+            messages.forEach(msg => {
+                const type = msg.getAttribute('data-type');
+                let shouldShow = false;
+                
+                if (type === 'user' && showUser) shouldShow = true;
+                if (type === 'assistant' && showAssistant) shouldShow = true;
+                if (type === 'tool' && showTool) shouldShow = true;
+                
+                if (shouldShow) {
+                    msg.classList.remove('hidden');
+                } else {
+                    msg.classList.add('hidden');
+                }
+            });
+        }
+
+        // 获取类型标签
+        function getTypeLabel(type) {
+            const labels = {
+                'user': '用户',
+                'assistant': '助手',
+                'tool': '工具'
+            };
+            return labels[type] || type;
+        }
+
+        // 主要分析函数（单次分析）
+        async function analyzeData() {
+            try {
+                console.log('analyzeData 被调用，当前模式:', currentInputMode);
+                console.log('当前输入方法:', currentInputMethod);
+                
+                // 如果是批量分析模式，调用批量分析函数
+                if (currentInputMode === 'batch') {
+                    console.log('检测到批量分析模式，启动批量分析...');
+                    console.log('当前批量URL数量:', getBatchUrls().length);
+                    console.log('当前批量JSON数量:', getBatchJsonData().length);
+                    await analyzeBatchData();
+                    return;
+                }
+                
+                // 单次分析模式
+                let data;
+                if (currentInputMethod === 'url') {
+                    console.log('正在从URL获取数据...');
+                    data = await fetchData();
+                    console.log('URL数据获取成功:', data);
+                } else {
+                    const jsonText = document.getElementById('json-input').value.trim();
+                    if (!jsonText) {
+                        showStatus('请输入JSON数据', 'error');
+                        return;
+                    }
+                    data = safeJsonParse(jsonText);
+                    if (!data) {
+                        showStatus('JSON格式错误', 'error');
+                        return;
+                    }
+                    console.log('JSON数据解析成功:', data);
+                    showStatus('数据解析成功！', 'success');
+                }
+
+                // 验证数据格式
+                if (!data || !Array.isArray(data.data)) {
+                    showStatus('数据格式错误：期望 { data: [...] }', 'error');
+                    return;
+                }
+
+                console.log('数据格式验证通过，消息数量:', data.data.length);
+
+                currentData = data;
+                currentTimezone = document.getElementById('timezone-select-single').value;
+
+                // 获取选中的分析类型
+                const includeBatch = document.getElementById('include-batch-single').checked;
+                const includeTime = document.getElementById('include-time-single').checked;
+                const includeViz = document.getElementById('include-viz-single').checked;
+
+                console.log('选中的分析类型 - 批量:', includeBatch, '时间:', includeTime, '对话:', includeViz);
+
+                // 验证至少选择了一种分析类型
+                if (!includeBatch && !includeTime && !includeViz) {
+                    showStatus('请至少选择一种分析类型', 'error');
+                    return;
+                }
+
+                // 在单次分析模式下，显示简洁的Prompt信息
+                if (currentInputMode === 'single') {
+                    console.log('显示单次分析Prompt...');
+                    displaySinglePrompt(data);
+                    
+                    // 显示单次分析结果区域
+                    console.log('显示单次分析结果区域...');
+                    const singleResultsSection = document.getElementById('single-results-section');
+                    if (singleResultsSection) {
+                        singleResultsSection.classList.remove('hidden');
+                        console.log('单次分析结果区域已显示');
+                    } else {
+                        console.error('未找到single-results-section元素');
+                    }
+                }
+
+                // 显示分析结果
+                if (includeTime) {
+                    console.log('显示时间分析结果...');
+                    displayTimeResults(data);
+                }
+                if (includeViz) {
+                    console.log('显示对话可视化结果...');
+                    displayVizResults(data);
+                }
+
+                // 在批量分析模式下才显示批量结果
+                if (includeBatch && currentInputMode === 'batch') {
+                    console.log('显示批量分析结果...');
+                    displayBatchResults(data);
+                }
+
+                console.log('分析完成');
+                showStatus('分析完成！', 'success');
+
+            } catch (error) {
+                console.error('分析失败:', error);
+                showStatus(`分析失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 显示单次分析的简洁Prompt
+        function displaySinglePrompt(data) {
+            console.log('开始显示单次分析Prompt...');
+            const userMessages = data.data.filter(m => m.type === 'user');
+            console.log('找到用户消息数量:', userMessages.length);
+            
+            if (userMessages.length > 0) {
+                const firstUserMessage = userMessages[0];
+                const cleanPrompt = extractCleanPrompt(firstUserMessage.content || '');
+                console.log('提取的Clean Prompt长度:', cleanPrompt.length);
+                
+                // 获取用户输入的URL
+                let sourceUrl = '';
+                if (currentInputMethod === 'url') {
+                    sourceUrl = document.getElementById('url-input').value.trim();
+                } else if (currentInputMethod === 'json') {
+                    // 对于JSON输入，尝试从metadata中获取source_url
+                    sourceUrl = firstUserMessage.metadata?.source_url || '';
+                }
+                
+                console.log('源URL:', sourceUrl);
+                
+                // 创建用户提示标题，如果是URL则添加链接
+                let promptTitle = '💬 用户提示';
+                if (sourceUrl) {
+                    promptTitle = `💬 <a href="${sourceUrl}" target="_blank" class="prompt-link" title="点击查看原始对话">用户提示</a>`;
+                }
+                
+                const promptHtml = `
+                    <div class="single-prompt-display">
+                        <div class="prompt-header">
+                            <h3>${promptTitle}</h3>
+                            <span class="prompt-time">${formatDate(parseIso(firstUserMessage.created_at), currentTimezone)}</span>
+                        </div>
+                        <div class="prompt-content">${cleanPrompt}</div>
+                    </div>
+                `;
+                
+                console.log('生成的Prompt HTML长度:', promptHtml.length);
+                
+                // 在时间分析结果之前插入Prompt显示
+                const timeResults = document.getElementById('time-results');
+                console.log('查找time-results元素:', !!timeResults);
+                
+                if (timeResults) {
+                    console.log('插入Prompt HTML...');
+                    timeResults.insertAdjacentHTML('beforebegin', promptHtml);
+                    console.log('单次分析Prompt已显示');
+                } else {
+                    console.error('未找到time-results元素，无法显示Prompt');
+                }
+            }
+        }
+
+        // 导出功能
+        function exportBatchResults() {
+            if (!currentData) return;
+            
+            const messages = currentData.data.filter(m => m.type === 'user');
+            let csv = '对话序号,消息ID,时间,用户提示\n';
+            
+            messages.forEach((msg, index) => {
+                const content = extractCleanPrompt(msg.content || '');
+                const time = formatDate(parseIso(msg.created_at), currentTimezone);
+                csv += `${index + 1},${msg.message_id},"${time}","${content.replace(/"/g, '""')}"\n`;
+            });
+            
+            download('batch-analysis.csv', csv);
+        }
+
+        function exportTimeResults() {
+            if (!currentData) return;
+            
+            const messages = currentData.data.map(msg => ({
+                ...msg,
+                parsedDate: parseIso(msg.created_at)
+            })).sort((a, b) => a.parsedDate - b.parsedDate);
+            
+            const runs = computeRuns(messages);
+            const cycles = computeCycles(messages);
+            
+            let csv = 'LLM运行窗口\n';
+            csv += toCsv(runs, [
+                { label: '#', get: (_r, i) => i + 1 },
+                { label: 'run_id', get: r => r.run_id || '' },
+                { label: 'assistant_message_id', get: r => r.assistant_message_id },
+                { label: 'start', get: r => r.start.toISOString() },
+                { label: 'end', get: r => r.end.toISOString() },
+                { label: 'duration_seconds', get: r => r.duration_seconds.toFixed(3) },
+            ]);
+            
+            csv += '\nLLM活跃周期\n';
+            csv += toCsv(cycles, [
+                { label: '#', get: (_r, i) => i + 1 },
+                { label: 'trigger_user_message_id', get: r => r.trigger_user_message_id },
+                { label: 'start', get: r => r.start.toISOString() },
+                { label: 'end', get: r => r.end.toISOString() },
+                { label: 'duration_seconds', get: r => r.duration_seconds.toFixed(3) },
+            ]);
+            
+            download('time-analysis.csv', csv);
+        }
+
+        // 时区切换事件
+        document.getElementById('timezone-select-single')?.addEventListener('change', function() {
+            currentTimezone = this.value;
+            if (currentData) {
+                displayTimeResults(currentData);
+                displayVizResults(currentData);
+            }
+        });
+
+        document.getElementById('timezone-select-viz').addEventListener('change', function() {
+            currentTimezone = this.value;
+            if (currentData) {
+                displayVizResults(currentData);
+            }
+        });
+
+        // 回车键支持
+        document.getElementById('url-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyzeData();
+            }
+        });
+
+        // 拖拽上传支持
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            const f = e.dataTransfer.files && e.dataTransfer.files[0];
+            if (!f) return;
+            
+            try {
+                const text = await f.text();
+                document.getElementById('json-input').value = text;
+                switchInputMethod('json');
+                showStatus('文件已加载，点击分析按钮开始', 'success');
+            } catch (error) {
+                showStatus('文件读取失败', 'error');
+            }
+        });
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            // 默认显示单次分析模式
+            switchInputMode('single');
+            // 初始化URL数量显示
+            updateUrlCountBadge();
+        });
+
+        // 折叠功能
+        function toggleCollapsible(id) {
+            const content = document.getElementById(`${id}-content`);
+            const toggle = document.getElementById(`${id}-toggle`);
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                toggle.classList.remove('expanded');
+                toggle.textContent = '▶';
+            } else {
+                content.classList.add('expanded');
+                toggle.classList.add('expanded');
+                toggle.textContent = '▼';
+            }
+        }
+    </script>
 </body>
-</html> 
+</html>
