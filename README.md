@@ -26,7 +26,7 @@
 ### 🌐 数据输入方式
 - **本地文件上传**: 支持拖拽上传 time.json 文件
 - **JSON粘贴**: 直接粘贴 JSON 内容进行分析
-- **URL自动获取**: 支持从 Societas 分享链接自动获取数据
+- **URL自动获取**: 支持从分享链接自动获取数据
 - **批量URL处理**: 一次性处理多个对话链接
 
 ## 🚀 本地使用
@@ -84,7 +84,7 @@ python3 -m http.server 8000
 ### CORS解决方案
 - 使用 `corsproxy.io` 作为主要代理服务
 - 支持 POST 请求和复杂请求体
-- 自动处理Societas API的认证和跨域问题
+- 自动处理API的认证和跨域问题
 
 ### 数据处理
 - **智能解析**: 自动识别不同的数据格式和结构
@@ -122,8 +122,8 @@ python3 -m http.server 8000
 ### 批量分析示例
 ```
 输入多个URL:
-https://staging.societas.ms/share/d8dc89b3-da5c-476a-81a9-1974c083f5fe
-https://staging.societas.ms/share/3c23783d-f052-488a-92ae-0657c30ba990
+[分享链接1]
+[分享链接2]
 
 获得每个对话的:
 ✅ 用户初始Prompt
