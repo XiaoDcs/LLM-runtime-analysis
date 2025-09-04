@@ -1089,8 +1089,6 @@
         .key-stat-highlight .key-stat-label {
             color: rgba(255, 255, 255, 0.9);
         }
-            margin-bottom: 15px;
-        }
 
         .batch-time-stat {
             background: #f8f9fa;
@@ -1374,10 +1372,8 @@
         }
 
         /* 对话可视化结果 */
-        .conversation-viz {
-            max-height: 1200px;
-            overflow-y: auto;
-        }
+        /* 使用页面滚动，避免内部嵌套滚动影响整体滚动体验 */
+        .conversation-viz { margin: 0; }
         
         /* 消息筛选器 */
         .message-filter {
@@ -2271,6 +2267,32 @@
                 } else {
                     showStatus(`批量分析完成！处理了 ${allData.length} 个数据源，成功 ${successCount} 个，失败 ${errorCount} 个`, 'warning');
                 }
+                
+                // 修复页面滚动问题
+                setTimeout(() => {
+                    document.body.style.overflow = '';
+                    document.documentElement.style.overflow = '';
+                    document.body.style.position = '';
+                    document.documentElement.style.position = '';
+                    document.body.style.height = '';
+                    document.documentElement.style.height = '';
+                    
+                    // 确保页面可以正常滚动
+                    const pageHeight = Math.max(
+                        document.body.scrollHeight,
+                        document.body.offsetHeight,
+                        document.documentElement.clientHeight,
+                        document.documentElement.scrollHeight,
+                        document.documentElement.offsetHeight
+                    );
+                    
+                    if (pageHeight > window.innerHeight) {
+                        document.body.style.overflowY = 'auto';
+                        document.documentElement.style.overflowY = 'auto';
+                    }
+                    
+                    console.log('批量分析页面滚动修复完成，页面高度:', pageHeight, '窗口高度:', window.innerHeight);
+                }, 100);
 
             } catch (error) {
                 console.error('批量分析失败:', error);
@@ -2527,6 +2549,7 @@
             const runs = computeRuns(parsedMessages);
             const cycles = computeCycles(parsedMessages);
             const runSum = summarizeWindows(runs);
+            const cycleSum = summarizeWindows(cycles);
             
             // 生成关键信息HTML
             const keyInfoHtml = `
@@ -2551,12 +2574,12 @@
                         <div class="key-stat-label">助手消息</div>
                     </div>
                     <div class="key-stat-item key-stat-highlight">
-                        <div class="key-stat-value">${runSum.total.toFixed(1)}s</div>
-                        <div class="key-stat-label">LLM运行时间</div>
+                        <div class="key-stat-value">${cycleSum.total.toFixed(1)}s</div>
+                        <div class="key-stat-label">活跃周期总时间</div>
                     </div>
                     <div class="key-stat-item">
-                        <div class="key-stat-value">${cycles.length}</div>
-                        <div class="key-stat-label">活跃周期</div>
+                        <div class="key-stat-value">${runSum.total.toFixed(1)}s</div>
+                        <div class="key-stat-label">LLM运行时间</div>
                     </div>
                     <div class="key-stat-item">
                         <div class="key-stat-value">${toolMessages.length}</div>
@@ -2668,12 +2691,12 @@
                         <div class="batch-time-stat-label">总消息数</div>
                     </div>
                     <div class="batch-time-stat">
-                        <div class="batch-time-stat-value">${runSum.total.toFixed(3)}s</div>
-                        <div class="batch-time-stat-label">LLM运行时间</div>
+                        <div class="batch-time-stat-value">${cycleSum.total.toFixed(3)}s</div>
+                        <div class="batch-time-stat-label">活跃周期总时间</div>
                     </div>
                     <div class="batch-time-stat">
-                        <div class="batch-time-stat-value">${cycles.length}</div>
-                        <div class="batch-time-stat-label">活跃周期</div>
+                        <div class="batch-time-stat-value">${runSum.total.toFixed(3)}s</div>
+                        <div class="batch-time-stat-label">LLM运行时间</div>
                     </div>
                 </div>
             `;
@@ -2761,7 +2784,7 @@
                 return;
             }
 
-            let csv = '数据源,状态,消息数,用户消息数,助手消息数,工具消息数,LLM运行总时间,活跃周期数\n';
+            let csv = '数据源,状态,消息数,用户消息数,助手消息数,工具消息数,活跃周期总时间,LLM运行总时间,活跃周期数\n';
             
             batchResults.forEach(result => {
                 if (result.status === 'success' && result.data) {
@@ -2779,8 +2802,9 @@
                     const runs = computeRuns(parsedMessages);
                     const cycles = computeCycles(parsedMessages);
                     const runSum = summarizeWindows(runs);
+                    const cycleSum = summarizeWindows(cycles);
                     
-                    csv += `"${result.source}",成功,${messages.length},${userMessages.length},${assistantMessages.length},${toolMessages.length},${runSum.total.toFixed(3)}s,${cycles.length}\n`;
+                    csv += `"${result.source}",成功,${messages.length},${userMessages.length},${assistantMessages.length},${toolMessages.length},${cycleSum.total.toFixed(3)}s,${runSum.total.toFixed(3)}s,${cycles.length}\n`;
                 } else {
                     csv += `"${result.source}",失败,0,0,0,0,0s,0\n`;
                 }
@@ -3149,12 +3173,12 @@
                         <div class="summary-label">总消息数</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-value">${runSum.total.toFixed(3)}s</div>
-                        <div class="summary-label">LLM运行总时间</div>
-                    </div>
-                    <div class="summary-item">
                         <div class="summary-value">${cycleSum.total.toFixed(3)}s</div>
                         <div class="summary-label">活跃周期总时间</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">${runSum.total.toFixed(3)}s</div>
+                        <div class="summary-label">LLM运行总时间</div>
                     </div>
                     <div class="summary-item">
                         <div class="summary-value">${runs.length}</div>
@@ -3378,12 +3402,98 @@
             
             if (vizContent && vizResults) {
                 console.log('设置innerHTML...');
-                vizContent.innerHTML = statsHtml + filterHtml + timelineHtml;
+                // 初始化容器与“加载更多”按钮
+                const initialHtml = statsHtml + filterHtml + '<div class="conversation-viz" id="conversation-timeline"></div>' + '<div id="viz-load-more-wrap" style="text-align:center;margin:12px 0;"><button id="viz-load-more" class="export-btn">加载更多</button></div>';
+                vizContent.innerHTML = initialHtml;
                 console.log('移除hidden类...');
                 vizResults.classList.remove('hidden');
-                
-                // 存储消息数据供筛选使用
+
+                // 存储消息数据供筛选/分页使用
                 window.currentVizMessages = messages;
+                window._vizRenderedCount = 0;
+                window._vizBatchSize = 100; // 每批渲染100条，避免一次性大DOM
+
+                function renderMoreMessages() {
+                    const container = document.getElementById('conversation-timeline');
+                    const start = window._vizRenderedCount;
+                    const end = Math.min(start + window._vizBatchSize, window.currentVizMessages.length);
+                    if (!container || start >= end) return;
+
+                    let chunkHtml = '';
+                    for (let index = start; index < end; index += 1) {
+                        const msg = window.currentVizMessages[index];
+                        const content = msg.content || '';
+                        const cleanContent = extractCleanPrompt(content);
+                        const messageId = `msg-${index}`;
+                        chunkHtml += `
+                            <div class="message ${msg.type}" data-type="${msg.type}" id="${messageId}">
+                                <div class="message-header">
+                                    <span class="message-type ${msg.type}">${getTypeLabel(msg.type)}</span>
+                                    <span class="message-time">${formatDate(msg.parsedDate, currentTimezone)}</span>
+                                    <button class="metadata-toggle" onclick="toggleMetadata('${messageId}')">查看元数据</button>
+                                </div>
+                                <div class="message-content">${cleanContent}</div>
+                                <div class="message-metadata" id="${messageId}-metadata">
+                                    <div class="metadata-item"><span class="metadata-label">消息ID:</span><span class="metadata-value">${msg.message_id || '无'}</span></div>
+                                    <div class="metadata-item"><span class="metadata-label">线程ID:</span><span class="metadata-value">${msg.thread_id || '无'}</span></div>
+                                    <div class="metadata-item"><span class="metadata-label">创建时间:</span><span class="metadata-value">${msg.created_at}</span></div>
+                                    ${msg.metadata ? `<div class="metadata-item"><span class="metadata-label">元数据:</span><span class="metadata-value">${JSON.stringify(msg.metadata, null, 2)}</span></div>` : ''}
+                                </div>
+                            </div>`;
+                    }
+                    container.insertAdjacentHTML('beforeend', chunkHtml);
+                    window._vizRenderedCount = end;
+
+                    // 控制"加载更多"按钮可见性
+                    const btn = document.getElementById('viz-load-more');
+                    if (btn) {
+                        if (window._vizRenderedCount >= window.currentVizMessages.length) {
+                            btn.disabled = true;
+                            btn.textContent = '全部加载完成';
+                        } else {
+                            btn.disabled = false;
+                            btn.textContent = '加载更多';
+                        }
+                    }
+                    
+                    // 修复页面滚动问题
+                    setTimeout(() => {
+                        document.body.style.overflow = '';
+                        document.documentElement.style.overflow = '';
+                        document.body.style.position = '';
+                        document.documentElement.style.position = '';
+                        document.body.style.height = '';
+                        document.documentElement.style.height = '';
+                        
+                        // 确保页面可以正常滚动
+                        const pageHeight = Math.max(
+                            document.body.scrollHeight,
+                            document.body.offsetHeight,
+                            document.documentElement.clientHeight,
+                            document.documentElement.scrollHeight,
+                            document.documentElement.offsetHeight
+                        );
+                        
+                        if (pageHeight > window.innerHeight) {
+                            document.body.style.overflowY = 'auto';
+                            document.documentElement.style.overflowY = 'auto';
+                        }
+                        
+                        console.log('加载更多消息后页面滚动修复完成，页面高度:', pageHeight, '窗口高度:', window.innerHeight);
+                    }, 50);
+                }
+
+                // 绑定加载更多
+                const loadMoreBtn = document.getElementById('viz-load-more');
+                if (loadMoreBtn) {
+                    loadMoreBtn.addEventListener('click', () => {
+                        renderMoreMessages();
+                    });
+                }
+
+                // 首次渲染一批
+                renderMoreMessages();
+
                 console.log('对话可视化结果已显示');
             } else {
                 console.error('对话可视化结果元素未找到:', {
@@ -3432,6 +3542,32 @@
                     msg.classList.add('hidden');
                 }
             });
+            
+            // 修复页面滚动问题
+            setTimeout(() => {
+                document.body.style.overflow = '';
+                document.documentElement.style.overflow = '';
+                document.body.style.position = '';
+                document.documentElement.style.position = '';
+                document.body.style.height = '';
+                document.documentElement.style.height = '';
+                
+                // 确保页面可以正常滚动
+                const pageHeight = Math.max(
+                    document.body.scrollHeight,
+                    document.body.offsetHeight,
+                    document.documentElement.clientHeight,
+                    document.documentElement.scrollHeight,
+                    document.documentElement.offsetHeight
+                );
+                
+                if (pageHeight > window.innerHeight) {
+                    document.body.style.overflowY = 'auto';
+                    document.documentElement.style.overflowY = 'auto';
+                }
+                
+                console.log('消息筛选后页面滚动修复完成，页面高度:', pageHeight, '窗口高度:', window.innerHeight);
+            }, 50);
         }
 
         // 获取类型标签
@@ -3538,6 +3674,32 @@
 
                 console.log('分析完成');
                 showStatus('分析完成！', 'success');
+                
+                // 修复页面滚动问题
+                setTimeout(() => {
+                    document.body.style.overflow = '';
+                    document.documentElement.style.overflow = '';
+                    document.body.style.position = '';
+                    document.documentElement.style.position = '';
+                    document.body.style.height = '';
+                    document.documentElement.style.height = '';
+                    
+                    // 确保页面可以正常滚动
+                    const pageHeight = Math.max(
+                        document.body.scrollHeight,
+                        document.body.offsetHeight,
+                        document.documentElement.clientHeight,
+                        document.documentElement.scrollHeight,
+                        document.documentElement.offsetHeight
+                    );
+                    
+                    if (pageHeight > window.innerHeight) {
+                        document.body.style.overflowY = 'auto';
+                        document.documentElement.style.overflowY = 'auto';
+                    }
+                    
+                    console.log('页面滚动修复完成，页面高度:', pageHeight, '窗口高度:', window.innerHeight);
+                }, 100);
 
             } catch (error) {
                 console.error('分析失败:', error);
@@ -3671,16 +3833,30 @@
             }
         });
 
-        // 拖拽上传支持
+        // 拖拽上传支持（仅在确实拖入文件时阻止默认行为，避免影响页面滚动）
+        function isFileDragEvent(evt) {
+            try {
+                const dt = evt && evt.dataTransfer;
+                if (!dt || !dt.types) return false;
+                // Safari/Firefox/Chrome: types 可能为 DOMStringList 或数组
+                const types = Array.from(dt.types);
+                return types.includes('Files');
+            } catch (_) {
+                return false;
+            }
+        }
+
         document.addEventListener('dragover', (e) => {
-            e.preventDefault();
-        });
+            if (isFileDragEvent(e)) {
+                e.preventDefault();
+            }
+        }, { passive: false });
 
         document.addEventListener('drop', async (e) => {
+            if (!isFileDragEvent(e)) return;
             e.preventDefault();
             const f = e.dataTransfer.files && e.dataTransfer.files[0];
             if (!f) return;
-            
             try {
                 const text = await f.text();
                 document.getElementById('json-input').value = text;
@@ -3689,7 +3865,7 @@
             } catch (error) {
                 showStatus('文件读取失败', 'error');
             }
-        });
+        }, { passive: false });
         
         // 页面加载完成后初始化
         window.addEventListener('DOMContentLoaded', function() {
