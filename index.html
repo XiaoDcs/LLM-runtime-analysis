@@ -1701,6 +1701,382 @@
                 font-size: 2rem;
             }
         }
+
+        /* 预览功能样式 */
+        .preview-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+            min-height: 500px;
+        }
+
+        .preview-left-panel, .preview-right-panel {
+            background: white;
+            border-radius: 15px;
+            border: 2px solid #e1e8ed;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header, .preview-display-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-header h3, .preview-display-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .preview-controls, .preview-display-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-link-btn, .clear-links-btn, .refresh-preview-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-link-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .add-link-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .clear-links-btn {
+            background: rgba(231, 76, 60, 0.8);
+            color: white;
+        }
+
+        .clear-links-btn:hover {
+            background: rgba(231, 76, 60, 1);
+        }
+
+        .refresh-preview-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .refresh-preview-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .preview-links-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .preview-empty-state {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px 20px;
+        }
+
+        .preview-empty-state p {
+            margin: 10px 0;
+        }
+
+        .preview-hint {
+            font-size: 12px;
+            color: #adb5bd;
+        }
+
+        .preview-link-item {
+            background: #f8f9fa;
+            border: 1px solid #e1e8ed;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .preview-link-item:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateY(-1px);
+        }
+
+        .preview-link-item.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .preview-link-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .preview-link-url {
+            color: #667eea;
+            font-size: 12px;
+            word-break: break-all;
+            margin-bottom: 5px;
+        }
+
+        .preview-link-meta {
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .preview-display-container {
+            flex: 1;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .preview-placeholder {
+            text-align: center;
+            color: #6c757d;
+            padding: 60px 20px;
+        }
+
+        .preview-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .preview-input-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #e1e8ed;
+        }
+
+        .preview-paste-area h4 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .preview-paste-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .preview-paste-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .parse-preview-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .parse-preview-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .preview-loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .preview-error {
+            text-align: center;
+            padding: 40px;
+            color: #dc3545;
+            background: #f8d7da;
+            border-radius: 8px;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* 预览输入模式切换 */
+        .preview-input-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e1e8ed;
+        }
+
+        .preview-input-tab {
+            background: #f8f9fa;
+            border: 2px solid #e1e8ed;
+            color: #5a6c7d;
+            padding: 10px 20px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .preview-input-tab:hover {
+            background: #e9ecef;
+        }
+
+        .preview-input-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .preview-input-mode {
+            display: none;
+        }
+
+        .preview-input-mode.active {
+            display: block;
+        }
+
+        /* Societas输入样式 */
+        .societas-input-area h4 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .societas-url-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .societas-url-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .societas-url-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .fetch-societas-btn, .fetch-batch-societas-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .fetch-societas-btn:hover, .fetch-batch-societas-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .societas-batch-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #e1e8ed;
+        }
+
+        .societas-batch-container h5 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 1rem;
+        }
+
+        .societas-batch-input {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .societas-batch-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .fetch-batch-societas-btn {
+            width: 100%;
+        }
+
+        .societas-loading {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+
+        .societas-error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #f5c6cb;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .preview-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .preview-left-panel, .preview-right-panel {
+                min-height: 300px;
+            }
+
+            .societas-url-input-container {
+                flex-direction: column;
+            }
+
+            .fetch-societas-btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1713,6 +2089,7 @@
                 <div class="input-tabs">
                     <button class="input-tab" onclick="switchInputMode('single')">⚡ 单次分析</button>
                     <button class="input-tab active" onclick="switchInputMode('batch')">🚀 批量分析</button>
+                    <button class="input-tab" onclick="switchInputMode('preview')">👁️ 链接预览</button>
                 </div>
             </div>
             
@@ -1855,6 +2232,73 @@
                 </div>
             </div>
             
+            <!-- 链接预览模式 -->
+            <div id="preview-mode" class="input-mode">
+                <div class="preview-container">
+                    <div class="preview-left-panel">
+                        <div class="preview-header">
+                            <h3>🔗 链接列表</h3>
+                            <div class="preview-controls">
+                                <button class="add-link-btn" onclick="addPreviewLink()">+ 添加链接</button>
+                                <button class="add-link-btn" onclick="addTestLink()" style="background: rgba(40, 167, 69, 0.8);">🧪 测试</button>
+                                <button class="clear-links-btn" onclick="clearPreviewLinks()">清空</button>
+                            </div>
+                        </div>
+                        <div class="preview-links-container" id="preview-links-container">
+                            <div class="preview-empty-state">
+                                <p>📝 请添加包含vercel链接的JSON数据</p>
+                                <p class="preview-hint">支持批量粘贴多个链接，系统会自动解析vercel链接</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="preview-right-panel">
+                        <div class="preview-display-header">
+                            <h3>👁️ 预览区域</h3>
+                            <div class="preview-display-controls">
+                                <button class="refresh-preview-btn" onclick="refreshPreview()">🔄 刷新</button>
+                            </div>
+                        </div>
+                        <div class="preview-display-container" id="preview-display-container">
+                            <div class="preview-placeholder">
+                                <p>请从左侧选择一个链接进行预览</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="preview-input-section">
+                    <div class="preview-input-tabs">
+                        <button class="preview-input-tab active" onclick="switchPreviewInputMode('societas')">🔗 Societas链接</button>
+                        <button class="preview-input-tab" onclick="switchPreviewInputMode('json')">📋 JSON数据</button>
+                    </div>
+                    
+                    <!-- Societas链接输入模式 -->
+                    <div id="societas-input-mode" class="preview-input-mode active">
+                        <div class="societas-input-area">
+                            <h4>🔗 输入Societas分享链接</h4>
+                            <div class="societas-url-input-container">
+                                <input type="url" class="societas-url-input" id="societas-url-input" placeholder="https://staging.societas.ms/share/6ad59120-10f3-4e0e-b125-7a0e9e664f2e">
+                                <button class="fetch-societas-btn" onclick="fetchSocietasData()">获取数据</button>
+                                <button class="fetch-societas-btn" onclick="testSocietasLink()" style="background: rgba(40, 167, 69, 0.8);">🧪 测试</button>
+                            </div>
+                            <div class="societas-batch-container">
+                                <h5>批量输入多个链接</h5>
+                                <textarea class="societas-batch-input" id="societas-batch-input" placeholder="粘贴多个Societas链接，每行一个：&#10;https://staging.societas.ms/share/abc123&#10;https://staging.societas.ms/share/def456"></textarea>
+                                <button class="fetch-batch-societas-btn" onclick="fetchBatchSocietasData()">批量获取</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- JSON数据输入模式 -->
+                    <div id="json-input-mode" class="preview-input-mode">
+                        <div class="preview-paste-area">
+                            <h4>📋 批量粘贴JSON数据</h4>
+                            <textarea class="preview-paste-input" id="preview-paste-input" placeholder="粘贴包含vercel链接的JSON数据，支持多个对话数据..."></textarea>
+                            <button class="parse-preview-btn" onclick="parsePreviewData()">解析链接</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div id="status" class="status-message"></div>
         </div>
 
@@ -1953,6 +2397,10 @@
             
             // 更新结果容器布局
             if (mode === 'single') {
+                resultsContainer.classList.add('single-mode');
+                // 隐藏批量分析结果
+                document.getElementById('batch-results').classList.add('hidden');
+            } else if (mode === 'preview') {
                 resultsContainer.classList.add('single-mode');
                 // 隐藏批量分析结果
                 document.getElementById('batch-results').classList.add('hidden');
@@ -3888,6 +4336,455 @@
                 content.classList.add('expanded');
                 toggle.classList.add('expanded');
                 toggle.textContent = '▼';
+            }
+        }
+
+        // 预览功能相关变量
+        let previewLinks = [];
+        let currentPreviewLink = null;
+        let currentPreviewInputMode = 'societas';
+
+        // 解析预览数据
+        function parsePreviewData() {
+            const input = document.getElementById('preview-paste-input');
+            const data = input.value.trim();
+            
+            if (!data) {
+                showStatus('请输入JSON数据', 'error');
+                return;
+            }
+
+            try {
+                // 尝试解析JSON数据
+                let jsonData;
+                if (data.startsWith('[')) {
+                    jsonData = JSON.parse(data);
+                } else {
+                    jsonData = [JSON.parse(data)];
+                }
+
+                // 提取vercel链接
+                const extractedLinks = extractVercelLinks(jsonData);
+                
+                if (extractedLinks.length === 0) {
+                    showStatus('未找到vercel链接', 'warning');
+                    return;
+                }
+
+                previewLinks = extractedLinks;
+                displayPreviewLinks();
+                showStatus(`成功解析 ${extractedLinks.length} 个链接`, 'success');
+                
+                // 自动选择第一个链接
+                if (extractedLinks.length > 0) {
+                    setTimeout(() => {
+                        selectPreviewLink(extractedLinks[0].id);
+                    }, 100);
+                }
+                
+            } catch (error) {
+                showStatus('JSON格式错误: ' + error.message, 'error');
+            }
+        }
+
+        // 从JSON数据中提取vercel链接
+        function extractVercelLinks(jsonData) {
+            const links = [];
+            const vercelRegex = /https:\/\/[^\/]*\.vercel\.app[^\s]*/g;
+
+            function searchInObject(obj, path = '') {
+                if (typeof obj === 'string') {
+                    const matches = obj.match(vercelRegex);
+                    if (matches) {
+                        matches.forEach(match => {
+                            links.push({
+                                id: Date.now() + Math.random(),
+                                url: match,
+                                title: `链接 ${links.length + 1}`,
+                                source: path || '未知来源',
+                                timestamp: new Date().toLocaleString()
+                            });
+                        });
+                    }
+                } else if (Array.isArray(obj)) {
+                    obj.forEach((item, index) => searchInObject(item, `${path}[${index}]`));
+                } else if (obj && typeof obj === 'object') {
+                    Object.keys(obj).forEach(key => {
+                        searchInObject(obj[key], path ? `${path}.${key}` : key);
+                    });
+                }
+            }
+
+            jsonData.forEach((item, index) => {
+                searchInObject(item, `对话${index + 1}`);
+            });
+
+            return links;
+        }
+
+        // 显示预览链接列表
+        function displayPreviewLinks() {
+            const container = document.getElementById('preview-links-container');
+            console.log('显示预览链接，总数:', previewLinks.length);
+            
+            if (previewLinks.length === 0) {
+                container.innerHTML = `
+                    <div class="preview-empty-state">
+                        <p>📝 请添加包含vercel链接的JSON数据</p>
+                        <p class="preview-hint">支持批量粘贴多个链接，系统会自动解析vercel链接</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = previewLinks.map(link => `
+                <div class="preview-link-item" onclick="selectPreviewLink('${link.id}')" data-link-id="${link.id}">
+                    <div class="preview-link-title">${link.title}</div>
+                    <div class="preview-link-url">${link.url}</div>
+                    <div class="preview-link-meta">来源: ${link.source} | ${link.timestamp}</div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+            console.log('链接列表已更新，HTML长度:', html.length);
+        }
+
+        // 选择预览链接
+        function selectPreviewLink(linkId) {
+            console.log('选择链接ID:', linkId);
+            
+            // 更新选中状态
+            document.querySelectorAll('.preview-link-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            const targetElement = document.querySelector(`[data-link-id="${linkId}"]`);
+            if (targetElement) {
+                targetElement.classList.add('active');
+                console.log('已激活链接元素');
+            } else {
+                console.error('找不到链接元素:', linkId);
+            }
+
+            // 找到对应的链接
+            const link = previewLinks.find(l => l.id == linkId);
+            if (link) {
+                console.log('找到链接:', link);
+                currentPreviewLink = link;
+                displayPreview(link);
+            } else {
+                console.error('找不到链接数据:', linkId);
+            }
+        }
+
+        // 显示预览
+        function displayPreview(link) {
+            console.log('开始显示预览:', link);
+            const container = document.getElementById('preview-display-container');
+            
+            if (!container) {
+                console.error('找不到预览容器');
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="preview-loading">
+                    <p>🔄 正在加载预览...</p>
+                    <p style="font-size: 12px; color: #666;">URL: ${link.url}</p>
+                </div>
+            `;
+
+            // 创建iframe来显示vercel链接
+            setTimeout(() => {
+                console.log('创建iframe，URL:', link.url);
+                container.innerHTML = `
+                    <iframe 
+                        class="preview-iframe" 
+                        src="${link.url}" 
+                        title="${link.title}"
+                        onload="handlePreviewLoad()"
+                        onerror="handlePreviewError()">
+                    </iframe>
+                `;
+            }, 500);
+        }
+
+        // 处理预览加载成功
+        function handlePreviewLoad() {
+            console.log('预览加载成功');
+        }
+
+        // 处理预览加载错误
+        function handlePreviewError() {
+            const container = document.getElementById('preview-display-container');
+            container.innerHTML = `
+                <div class="preview-error">
+                    <p>❌ 预览加载失败</p>
+                    <p>链接可能无法访问或存在跨域限制</p>
+                    <p><a href="${currentPreviewLink?.url}" target="_blank">在新窗口中打开</a></p>
+                </div>
+            `;
+        }
+
+        // 刷新预览
+        function refreshPreview() {
+            if (currentPreviewLink) {
+                displayPreview(currentPreviewLink);
+            }
+        }
+
+        // 添加预览链接
+        function addPreviewLink() {
+            const url = prompt('请输入vercel链接:');
+            if (url && url.trim()) {
+                // 更宽松的验证，支持任何包含vercel.app的链接
+                if (url.includes('vercel.app')) {
+                    const newLink = {
+                        id: Date.now() + Math.random(),
+                        url: url.trim(),
+                        title: `手动添加的链接 ${previewLinks.length + 1}`,
+                        source: '手动添加',
+                        timestamp: new Date().toLocaleString()
+                    };
+                    previewLinks.push(newLink);
+                    displayPreviewLinks();
+                    showStatus(`链接添加成功: ${url}`, 'success');
+                    console.log('添加的链接:', newLink);
+                    
+                    // 自动选择新添加的链接
+                    setTimeout(() => {
+                        selectPreviewLink(newLink.id);
+                    }, 100);
+                } else {
+                    showStatus('请输入包含vercel.app的链接', 'error');
+                }
+            } else if (url === '') {
+                showStatus('链接不能为空', 'error');
+            }
+        }
+
+        // 清空预览链接
+        function clearPreviewLinks() {
+            if (confirm('确定要清空所有链接吗？')) {
+                previewLinks = [];
+                currentPreviewLink = null;
+                displayPreviewLinks();
+                document.getElementById('preview-display-container').innerHTML = `
+                    <div class="preview-placeholder">
+                        <p>请从左侧选择一个链接进行预览</p>
+                    </div>
+                `;
+                showStatus('链接已清空', 'info');
+            }
+        }
+
+        // 测试函数 - 添加示例链接
+        function addTestLink() {
+            const testLink = {
+                id: Date.now() + Math.random(),
+                url: 'https://societas-static-page-nrcuc8wi3-societas.vercel.app',
+                title: '测试链接',
+                source: '测试',
+                timestamp: new Date().toLocaleString()
+            };
+            previewLinks.push(testLink);
+            displayPreviewLinks();
+            showStatus('测试链接添加成功', 'success');
+            console.log('测试链接已添加:', testLink);
+            
+            // 自动选择新添加的链接
+            setTimeout(() => {
+                selectPreviewLink(testLink.id);
+            }, 100);
+        }
+
+        // 测试Societas链接功能
+        function testSocietasLink() {
+            const testUrl = 'https://staging.societas.ms/share/6ad59120-10f3-4e0e-b125-7a0e9e664f2e';
+            document.getElementById('societas-url-input').value = testUrl;
+            showStatus('已填入测试链接，点击"获取数据"按钮测试', 'info');
+        }
+
+        // 全局调试函数
+        window.debugPreview = function() {
+            console.log('=== 预览功能调试信息 ===');
+            console.log('预览链接数量:', previewLinks.length);
+            console.log('当前预览链接:', currentPreviewLink);
+            console.log('预览容器:', document.getElementById('preview-display-container'));
+            console.log('链接列表容器:', document.getElementById('preview-links-container'));
+            console.log('所有预览链接:', previewLinks);
+        };
+
+        // 强制刷新预览
+        window.forceRefreshPreview = function() {
+            if (currentPreviewLink) {
+                console.log('强制刷新预览:', currentPreviewLink);
+                displayPreview(currentPreviewLink);
+            } else {
+                console.log('没有当前预览链接');
+            }
+        };
+
+        // 通过 corsproxy.io 代理获取 Societas 数据，避免浏览器 CORS
+        async function fetchSocietasThread(threadId) {
+            const proxyUrl = `https://corsproxy.io/?https://staging.societas.ms/api/message/list`;
+            const resp = await fetch(proxyUrl, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ thread_id: threadId })
+            });
+            if (!resp.ok) {
+                throw new Error(`Proxy HTTP ${resp.status}: ${resp.statusText}`);
+            }
+            return await resp.json();
+        }
+
+        // 切换预览输入模式
+        function switchPreviewInputMode(mode) {
+            const tabs = document.querySelectorAll('.preview-input-tab');
+            const modes = document.querySelectorAll('.preview-input-mode');
+            
+            // 更新标签状态
+            tabs.forEach(tab => {
+                if (tab.getAttribute('onclick') === `switchPreviewInputMode('${mode}')`) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // 更新模式显示
+            modes.forEach(m => {
+                if (m.id === `${mode}-input-mode`) {
+                    m.classList.add('active');
+                } else {
+                    m.classList.remove('active');
+                }
+            });
+            
+            currentPreviewInputMode = mode;
+        }
+
+        // 从Societas链接获取数据
+        async function fetchSocietasData() {
+            const urlInput = document.getElementById('societas-url-input');
+            const url = urlInput.value.trim();
+            
+            if (!url) {
+                showStatus('请输入Societas链接', 'error');
+                return;
+            }
+            
+            if (!url.includes('societas.ms/share/')) {
+                showStatus('请输入有效的Societas分享链接', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('正在获取数据...', 'info');
+                console.log('获取Societas数据:', url);
+                // 通过本地代理 + POST 获取数据以避免 CORS
+                const match = url.match(/share\/([a-z0-9-]+)/i);
+                if (!match || !match[1]) {
+                    throw new Error('无法解析分享链接中的 thread_id');
+                }
+                const threadId = match[1];
+                const data = await fetchSocietasThread(threadId);
+                console.log('通过代理获取的数据:', data);
+                
+                // 提取vercel链接，仅取第一个
+                const extractedLinks = extractVercelLinks([data]);
+                if (extractedLinks.length === 0) {
+                    showStatus('未找到vercel链接', 'warning');
+                    return;
+                }
+                const firstLink = extractedLinks[0];
+                // 去重：按 URL 去重
+                const exists = previewLinks.some(l => l.url === firstLink.url);
+                if (!exists) {
+                    previewLinks = [...previewLinks, firstLink];
+                    displayPreviewLinks();
+                    showStatus('成功获取 1 个链接', 'success');
+                } else {
+                    showStatus('链接已存在，未重复添加', 'info');
+                }
+                // 自动选择
+                setTimeout(() => { selectPreviewLink(firstLink.id); }, 100);
+
+            } catch (error) {
+                console.error('获取Societas数据失败:', error);
+                showStatus(`获取数据失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 批量获取Societas数据
+        async function fetchBatchSocietasData() {
+            const batchInput = document.getElementById('societas-batch-input');
+            const urls = batchInput.value.trim().split('\n').filter(url => url.trim());
+            
+            if (urls.length === 0) {
+                showStatus('请输入至少一个Societas链接', 'error');
+                return;
+            }
+            
+            showStatus(`正在批量获取 ${urls.length} 个链接的数据...`, 'info');
+            
+            let successCount = 0;
+            let errorCount = 0;
+            const allExtractedLinks = [];
+            
+            for (let i = 0; i < urls.length; i++) {
+                const url = urls[i].trim();
+                if (!url.includes('societas.ms/share/')) {
+                    console.warn('跳过无效链接:', url);
+                    errorCount++;
+                    continue;
+                }
+                
+                try {
+                    console.log(`获取第 ${i + 1}/${urls.length} 个链接:`, url);
+                    const match = url.match(/share\/([a-z0-9-]+)/i);
+                    if (!match || !match[1]) {
+                        throw new Error('无法解析分享链接中的 thread_id');
+                    }
+                    const data = await fetchSocietasThread(match[1]);
+                    const extractedLinks = extractVercelLinks([data]);
+                    if (extractedLinks.length > 0) {
+                        allExtractedLinks.push(extractedLinks[0]);
+                    }
+                    successCount++;
+                    
+                    // 添加延迟避免请求过快
+                    if (i < urls.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                    
+                } catch (error) {
+                    console.error(`获取链接失败 ${url}:`, error);
+                    errorCount++;
+                }
+            }
+            
+            if (allExtractedLinks.length > 0) {
+                // 去重合并
+                const before = new Set(previewLinks.map(l => l.url));
+                let added = 0;
+                for (const link of allExtractedLinks) {
+                    if (link && link.url && !before.has(link.url)) {
+                        before.add(link.url);
+                        previewLinks.push(link);
+                        added += 1;
+                    }
+                }
+                displayPreviewLinks();
+                showStatus(`批量获取完成: 成功 ${successCount} 个，失败 ${errorCount} 个，新添 ${added} 个链接（已去重）`, 'success');
+                // 自动选择第一个新链接
+                setTimeout(() => { selectPreviewLink(allExtractedLinks[0].id); }, 100);
+            } else {
+                showStatus(`批量获取完成: 成功 ${successCount} 个，失败 ${errorCount} 个，未找到vercel链接`, 'warning');
             }
         }
     </script>
